@@ -17,7 +17,7 @@ export class DatabaseManager {
         beginTransact = beginTransactFct,
         bindStatements = bindStatementsFct,
         queryRaw = queryRawFct,
-    }) {
+    } = {}) {
         this._pool = null;
         this._acquiredCount = 0;
         this._env = env;
