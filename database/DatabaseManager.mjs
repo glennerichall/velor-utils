@@ -1,87 +1,23 @@
-import {createConnectionPool} from "./database.mjs";
+import {createConnectionPool as createConnectionPoolFct} from "./database.mjs";
 import {bindOnAfterMethods} from "utils/proxy.mjs";
 import {isTrue} from "utils/predicates.mjs";
 import {getLogger} from "utils/injection/services.mjs";
 import {retry} from "utils/functional.mjs";
-import {logQuery} from "./logQuery.mjs";
 import {ClientRetry} from "./ClientRetry.mjs";
 import {ClientProfiler} from "./ClientProfiler.mjs";
 import {ClientLogger} from "./ClientLogger.mjs";
+import {beginTransact as beginTransactFct} from "./beginTransact.mjs";
+import {queryRaw as queryRawFct} from "./queryRaw.mjs";
+import {bindStatements as bindStatementsFct} from "./bindStatements.mjs";
 
-
-export function bindStatementAutoRelease(statement, schema, clientProvider) {
-    return async (...args) => {
-        let client = await clientProvider();
-        try {
-            return statement(client, schema, ...args);
-        } finally {
-            client.release();
-        }
-    }
-}
-
-export function bindStatement(statement, schema, client) {
-    return (...args) => statement(client, schema, ...args);
-}
-
-export function bindStatements(statements, schema, clientOrProvider) {
-
-    let bind = typeof clientOrProvider === 'function' ?
-        bindStatementAutoRelease :
-        bindStatement;
-
-    let result = {};
-    for (let group in statements) {
-        result[group] = {};
-        for (let statement in statements[group]) {
-            result[group][statement] = bind(statements[group][statement], schema, clientOrProvider);
-        }
-    }
-
-    return result;
-}
-
-async function queryRaw(client, query, args, logger) {
-    try {
-        const res = await client.query(query, args);
-        return res.rows;
-    } catch (e) {
-        logQuery(query, logger, args);
-        throw e;
-    }
-}
-
-async function beginTransact(client) {
-    // start a new transaction with the current client
-    try {
-        await client.query('BEGIN');
-    } catch (e) {
-        client.release();
-        throw e;
-    }
-
-    // the calling code has the responsibility to end the transaction
-    // once done, the client is auto-released.
-    return {
-        commit: async () => {
-            try {
-                return client.query('COMMIT');
-            } finally {
-                client.release();
-            }
-        },
-        rollback: async () => {
-            try {
-                return client.query('ROLLBACK');
-            } finally {
-                client.release();
-            }
-        }
-    };
-}
 
 export class DatabaseManager {
-    constructor(env = process.env) {
+    constructor(env = process.env, {
+        createConnectionPool = createConnectionPoolFct,
+        beginTransact = beginTransactFct,
+        bindStatements = bindStatementsFct,
+        queryRaw = queryRawFct,
+    }) {
         this._pool = null;
         this._acquiredCount = 0;
         this._env = env;
@@ -89,6 +25,10 @@ export class DatabaseManager {
         this._rawStatements = null;
         this._database = null;
         this._transact = null;
+        this._createConnectionPool = createConnectionPool;
+        this._beginTransact = beginTransact;
+        this._bindStatements = bindStatements;
+        this._queryRaw = queryRaw;
     }
 
     get schema() {
@@ -101,7 +41,7 @@ export class DatabaseManager {
         statements.queryRaw = async (query, args) => {
             const client = await this.acquireClient();
             try {
-                return queryRaw(client, query, args, getLogger(this));
+                return this._queryRaw(client, query, args, getLogger(this));
             } finally {
                 client.release();
             }
@@ -113,13 +53,13 @@ export class DatabaseManager {
             const client = await this.acquireClient();
             // bind statements with schema and client but do not auto-release client
             // as it will be reused in the current transaction.
-            const statements = bindStatements(this._rawStatements, this.schema, client);
-            let transactManager = await beginTransact(client);
+            const statements = this._bindedStatements(this._rawStatements, this.schema, client);
+            let transactManager = await this._beginTransact(client);
 
             let transact = {
                 ...transactManager,
                 ...statements,
-                queryRaw: (query, args) => queryRaw(client, query, args, getLogger(this))
+                queryRaw: (query, args) => this._queryRaw(client, query, args, getLogger(this))
             };
             transact.isTransact = true;
 
@@ -186,7 +126,7 @@ export class DatabaseManager {
     getConnectionPool() {
         if (this._pool === null) {
             getLogger(this).debug(`Creating database connection pool [${this.schema}]`);
-            this._pool = createConnectionPool(this._env)
+            this._pool = this._createConnectionPool(this._env)
 
             this._pool.on('acquire', () => {
                 this._acquiredCount++;
@@ -225,7 +165,7 @@ export class DatabaseManager {
     bindStatements(statements) {
         let schema = this.schema;
         this._rawStatements = statements;
-        this._bindedStatements = bindStatements(statements, schema, () => this.acquireClient());
+        this._bindedStatements = this._bindStatements(statements, schema, () => this.acquireClient());
         return this;
     }
 
