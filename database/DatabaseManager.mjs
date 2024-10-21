@@ -1,8 +1,8 @@
 import {createConnectionPool as createConnectionPoolFct} from "./database.mjs";
-import {bindOnAfterMethods} from "utils/proxy.mjs";
-import {isTrue} from "utils/predicates.mjs";
-import {getLogger} from "utils/injection/services.mjs";
-import {retry} from "utils/functional.mjs";
+import {bindOnAfterMethods} from "../utils/proxy.mjs";
+import {isTrue} from "../utils/predicates.mjs";
+import {getLogger} from "../utils/injection/services.mjs";
+import {retry} from "../utils/functional.mjs";
 import {ClientRetry} from "./ClientRetry.mjs";
 import {ClientProfiler} from "./ClientProfiler.mjs";
 import {ClientLogger} from "./ClientLogger.mjs";
