@@ -1,15 +1,8 @@
 import PG from 'pg';
-import {ENV_TEST} from "../env.mjs";
 
 const {Pool} = PG;
 
 export const createConnectionPool = (connectionString) => {
-
-
-    if (NODE_ENV === ENV_TEST) {
-        connectionString += "?sslmode=disable";
-    }
-
     return new Pool({
         connectionString,
         ssl: {
