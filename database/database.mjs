@@ -3,12 +3,12 @@ import {ENV_TEST} from "../env.mjs";
 
 const {Pool} = PG;
 
-export const createConnectionPool = (env = process.env) => {
+export const createConnectionPool = (env = {}) => {
 
     const {
         DATABASE_URL_VAR = process.env.DATABASE_URL_VAR,
         DATABASE_CONNECTION_STRING = process.env[DATABASE_URL_VAR] ?? env[DATABASE_URL_VAR],
-        NODE_ENV
+        NODE_ENV = process.env.NODE_ENV
     } = env;
 
     let connectionString = DATABASE_CONNECTION_STRING;
