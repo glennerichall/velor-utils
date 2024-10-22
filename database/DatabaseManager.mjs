@@ -27,11 +27,10 @@ export const createDatabaseManagerClass = ({
         #rawStatements;
         #database;
         #transact;
-        #env;
         #schema;
+        #connectionString;
 
-        constructor(schema, env) {
-            this.#env = env;
+        constructor(schema, connectionString) {
             this.#pool = null;
             this.#acquiredCount = 0;
             this.#boundStatements = null;
@@ -39,6 +38,7 @@ export const createDatabaseManagerClass = ({
             this.#database = null;
             this.#transact = null;
             this.#schema = schema;
+            this.#connectionString = connectionString;
         }
 
         get schema() {
@@ -136,7 +136,7 @@ export const createDatabaseManagerClass = ({
         getConnectionPool() {
             if (this.#pool === null) {
                 getLogger(this).debug(`Creating database connection pool [${this.schema}]`);
-                this.#pool = createConnectionPool(this.#env)
+                this.#pool = createConnectionPool(this.#connectionString)
 
                 this.#pool.on('acquire', () => {
                     this.#acquiredCount++;
