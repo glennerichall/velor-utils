@@ -120,3 +120,7 @@ export function atob(base64) {
 export function btoa(buffer) {
     return Buffer.from(buffer).toString('base64')
 }
+
+export function removeAnsiColors(str) {
+    return str.replace(/\x1B\[[0-9;]*[mK]/g, '');
+}
