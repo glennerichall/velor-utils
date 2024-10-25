@@ -14,6 +14,13 @@ export function getEnvValue(serviceAware, name) {
     return getEnvironment(serviceAware)[fullName];
 }
 
+export function getEnvValues(serviceAware, ...names) {
+    let resolver = getEnvNameResolver(serviceAware);
+    const env = getEnvironment(serviceAware);
+    return names.map(name => resolver.resolve(name))
+        .map(fullName => env[fullName]);
+}
+
 export function getEnvironment(serviceAware) {
     return getServices(serviceAware).env;
 }
