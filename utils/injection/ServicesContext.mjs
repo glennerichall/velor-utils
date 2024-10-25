@@ -1,6 +1,7 @@
 import {createInstance} from "./createInstance.mjs";
 import {isClass} from "./isClass.mjs";
 import {getGlobalContext} from "../global.mjs";
+import {baseFactories} from "./baseFactories.mjs";
 
 let __id__ = 0;
 
@@ -8,6 +9,7 @@ export const SCOPE_SINGLETON = 'singleton';
 export const SCOPE_INSTANCE = 'instance';
 export const SCOPE_PROTOTYPE = 'prototype';
 export const SCOPE_REQUEST = 'request';
+export const ENV_NAME_PREFIX = Symbol('env_name_prefix');
 
 let instanceUuid = 0;
 let uuidSymbol = Symbol('uuid');
@@ -16,10 +18,6 @@ let servicesSymbol = Symbol('services');
 
 export function getUuid(instance) {
     return instance[uuidSymbol];
-}
-
-export function getClasses(serviceAware) {
-    return getServices(serviceAware).classes;
 }
 
 export function isInstanceKey(key) {
@@ -32,17 +30,24 @@ export function isServiceAware(serviceAware) {
         serviceAware?.services instanceof ServicesContext;
 }
 
+export function mergeDefaultServicesOptions(options) {
+    let {
+        factories = {},
+    } = options;
+
+    return {
+        ...options,
+
+        factories: {
+            ...baseFactories,
+            ...factories,
+        },
+    }
+}
+
 export function createAppServicesInstance(options, type) {
-    // let contexts = getGlobalContext()[servicesSymbol];
-    // if (!contexts) {
-    //     contexts = {};
-    // }
-    // if (contexts[type]) {
-    //     throw new Error("Services instance has already been created");
-    // }
-    const context = new ServicesContext(options, type);
-    // contexts[type] = context;
-    return context;
+    options = mergeDefaultServicesOptions(options);
+    return new ServicesContext(options, type);
 }
 
 export function getAppServices(type) {
@@ -95,8 +100,12 @@ export function getServiceBinder(serviceAware) {
             let instance;
             if (isInstanceKey(classOrKey)) {
                 const factory = serviceAware.getFactoryForKey(classOrKey);
-                instance = factory(serviceAware, ...args);
-                instance[keySymbol] = classOrKey;
+                if (typeof factory === "function") {
+                    instance = factory(serviceAware, ...args);
+                    instance[keySymbol] = classOrKey;
+                } else {
+                    throw new Error(`Provide a factory function for key ${classOrKey}`);
+                }
             } else if (isClass(classOrKey)) {
                 instance = new classOrKey(...args);
             } else {

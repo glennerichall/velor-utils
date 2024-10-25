@@ -1,5 +1,18 @@
 import {getServices} from "./ServicesContext.mjs";
+import {getEnvNameResolver} from "./services.mjs";
 
+export function getEnvName(serviceAware, name) {
+    return getEnvNameResolver(serviceAware).resolve(name);
+}
+
+export function getClasses(serviceAware) {
+    return getServices(serviceAware).classes;
+}
+
+export function getEnvValue(serviceAware, name) {
+    let fullName = getEnvName(serviceAware, name);
+    return getEnvironment(serviceAware)[fullName];
+}
 
 export function getEnvironment(serviceAware) {
     return getServices(serviceAware).env;
