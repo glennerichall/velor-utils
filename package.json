@@ -1,6 +1,6 @@
 {
-  "name": "velor",
-  "version": "1.0.13",
+  "name": "velor-utils",
+  "version": "1.0.14",
   "description": "",
   "scripts": {
     "test": "npx playwright test"
