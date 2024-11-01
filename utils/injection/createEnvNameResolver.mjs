@@ -5,7 +5,11 @@ export function createEnvNameResolver(services) {
     let constants = getConstants(services);
     return {
         resolve(name) {
-            return constants[ENV_NAME_PREFIX] + "_" + name;
+            let prefix = constants[ENV_NAME_PREFIX];
+            if (prefix) {
+                return prefix + "_" + name;
+            }
+            return name;
         }
     }
 }

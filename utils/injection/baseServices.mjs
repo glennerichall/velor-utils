@@ -1,4 +1,4 @@
-import {getServices} from "./ServicesContext.mjs";
+import {ENV_NAME_PREFIX, getServices} from "./ServicesContext.mjs";
 import {getEnvNameResolver} from "./services.mjs";
 import {
     ENV_DEVELOPMENT,
@@ -30,6 +30,10 @@ export function getClasses(serviceAware) {
     return getServices(serviceAware).classes;
 }
 
+export function setEnvPrefix(serviceAware, prefix) {
+    getConstants(serviceAware)[ENV_NAME_PREFIX] = prefix;
+}
+
 export function getEnvValue(serviceAware, name, defaultValue) {
     let fullName = getEnvName(serviceAware, name);
     let value = getEnvironment(serviceAware)[fullName];
@@ -37,6 +41,14 @@ export function getEnvValue(serviceAware, name, defaultValue) {
         value = defaultValue;
     }
     return value;
+}
+
+export function getEnvValueIndirect(serviceAware, varName, defaultValue) {
+    let varValue = getEnvValue(serviceAware, varName);
+    if (varValue) {
+        return getEnvValue(serviceAware, varValue, defaultValue);
+    }
+    return defaultValue;
 }
 
 export function getEnvValues(serviceAware, ...names) {

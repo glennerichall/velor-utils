@@ -1,5 +1,5 @@
-import {Timer} from "velor/utils/Timer.mjs";
-import {timeoutAsync} from "velor/utils/sync.mjs";
+import {Timer} from "../utils/Timer.mjs";
+import {timeoutAsync} from "../utils/sync.mjs";
 
 export async function waitOnAsync(callback, timeout = 30000) {
     const timer = new Timer();
