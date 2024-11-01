@@ -1,5 +1,26 @@
 import {getServices} from "./ServicesContext.mjs";
 import {getEnvNameResolver} from "./services.mjs";
+import {
+    ENV_DEVELOPMENT,
+    ENV_PRODUCTION,
+    ENV_STAGING
+} from "../../env.mjs";
+
+export function getNodeEnv(services) {
+    return getEnvironment(services).NODE_ENV;
+}
+
+export function isProduction(services) {
+    return getNodeEnv(services) === ENV_PRODUCTION;
+}
+
+export function isDevelopment(services) {
+    return getNodeEnv(services) === ENV_DEVELOPMENT;
+}
+
+export function isStaging(services) {
+    return getNodeEnv(services) === ENV_STAGING;
+}
 
 export function getEnvName(serviceAware, name) {
     return getEnvNameResolver(serviceAware).resolve(name);
@@ -9,9 +30,13 @@ export function getClasses(serviceAware) {
     return getServices(serviceAware).classes;
 }
 
-export function getEnvValue(serviceAware, name) {
+export function getEnvValue(serviceAware, name, defaultValue) {
     let fullName = getEnvName(serviceAware, name);
-    return getEnvironment(serviceAware)[fullName];
+    let value = getEnvironment(serviceAware)[fullName];
+    if (value === undefined) {
+        value = defaultValue;
+    }
+    return value;
 }
 
 export function getEnvValues(serviceAware, ...names) {
