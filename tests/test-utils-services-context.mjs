@@ -194,6 +194,12 @@ test.describe('ServicesContext and Provider (Scope Management) with Dependency I
         });
     });
 
+    test('getFactoryForKey throws when neither class nor factory definition exist', async () => {
+        let servicesContext = new ServicesContext();
+
+        expect(() => servicesContext.getFactoryForKey('testKey')).to.throw();
+    });
+
     test("should create services without options", ()=> {
         const services = createAppServicesInstance();
         expect(isServiceAware(services)).to.be.true;

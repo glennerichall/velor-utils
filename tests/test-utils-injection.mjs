@@ -1,6 +1,7 @@
 import {isClass} from "../utils/injection/isClass.mjs";
-
 import {setupTestContext} from "../test/setupTestContext.mjs";
+import {createInstance} from "../utils/injection/createInstance.mjs";
+import {ServicesContext} from "../utils/injection/ServicesContext.mjs";
 
 const {
     expect,
@@ -29,4 +30,23 @@ test.describe('injection', () => {
 
         expect(isClass('')).to.be.false;
     })
+
+    test('createInstance returns a function that instantiates the provided class', async () => {
+        class TestClass {
+            constructor(arg1, arg2) {
+                this.arg1 = arg1;
+                this.arg2 = arg2;
+            }
+        }
+
+        const instanceFunc = createInstance(TestClass, 'testArg1', 'testArg2');
+        expect(instanceFunc).to.be.a('function');
+
+        const instance = instanceFunc();
+        expect(instance).to.be.instanceof(TestClass);
+        expect(instance.arg1).to.equal('testArg1');
+        expect(instance.arg2).to.equal('testArg2');
+    });
+
+
 })
