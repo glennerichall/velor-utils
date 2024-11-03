@@ -41,6 +41,19 @@ class AutoWiredClass {
     }
 }
 
+
+class ClassWithCtorArgs {
+
+    constructor(arg1, arg2) {
+        this.arg1 = arg1;
+        this.arg2 = arg2;
+    }
+
+    initialize() {
+        this.initialized = true;
+    }
+}
+
 const {
     expect,
     test
@@ -70,7 +83,8 @@ test.describe('ServicesContext and Provider (Scope Management) with Dependency I
                 instanceService: {
                     factory: () => new InstanceClass(),
                     scope: SCOPE_INSTANCE
-                }
+                },
+                factoryFromClass: ClassWithCtorArgs
             }
         });
     });
@@ -200,8 +214,16 @@ test.describe('ServicesContext and Provider (Scope Management) with Dependency I
         expect(() => servicesContext.getFactoryForKey('testKey')).to.throw();
     });
 
-    test("should create services without options", ()=> {
+    test("should create services without options", () => {
         const services = createAppServicesInstance();
         expect(isServiceAware(services)).to.be.true;
+    })
+
+    test('should get instance from a factory that is only a class', async () => {
+        let instance = getProvider(servicesContext).factoryFromClass('a', 'b');
+        expect(instance).to.be.an.instanceOf(ClassWithCtorArgs);
+        expect(instance.initialized).to.be.true;
+        expect(instance.arg1).to.equal('a');
+        expect(instance.arg2).to.equal('b');
     })
 });

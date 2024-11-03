@@ -1,5 +1,5 @@
 export function createInstance(Clazz, ...args) {
-    return (services) => {
+    return () => {
         return new Clazz(...args);
     }
 }

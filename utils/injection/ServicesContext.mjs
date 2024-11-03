@@ -1,4 +1,3 @@
-import {createInstance} from "./createInstance.mjs";
 import {isClass} from "./isClass.mjs";
 import {getGlobalContext} from "../global.mjs";
 import {baseFactories} from "./baseFactories.mjs";
@@ -257,16 +256,16 @@ export class ServicesContext {
             if (typeof definition.factory === 'function') {
                 factory = definition.factory;
             } else if (isClass(definition.clazz)) {
-                factory = createInstance(definition.clazz);
+                factory = (_, ...args) => new definition.clazz(...args);
             }
         } else if (typeof definition === 'function') {
             if (isClass(definition)) {
-                factory = createInstance(definition);
+                factory = (_, ...args) => new definition(...args);
             } else {
                 factory = definition;
             }
         } else if (isClass(clazz)) {
-            factory = createInstance(clazz);
+            factory = (_, ...args) => new clazz(...args);
         }
         return factory;
     }
