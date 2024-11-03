@@ -55,31 +55,34 @@ const hasSeparator = /(_|-|\.|:)/;
 const hasCamel = /([a-z][A-Z]|[A-Z][a-z])/;
 
 export function toNoCase(string) {
-    if (hasSpace.test(string)) return string.toLowerCase()
-    if (hasSeparator.test(string)) return (unSeparate(string) || string).toLowerCase()
-    if (hasCamel.test(string)) return unCamelize(string).toLowerCase()
-    return string.toLowerCase()
+    if (hasSpace.test(string)) return string.toLowerCase();
+    if (hasSeparator.test(string)) return (unSeparate(string) || string).toLowerCase();
+    if (hasCamel.test(string)) return unCamelize(string).toLowerCase();
+    return string.toLowerCase();
 }
 
 const separatorSplitter = /[\W_]+(.|$)/g
 
 export function unSeparate(string) {
-    return string.replace(separatorSplitter, function (m, next) {
-        return next ? ' ' + next : ''
-    })
+    return string.replace(separatorSplitter,
+        (m, next) => next ? ' ' + next : '')
 }
 
-const camelSplitter = /(.)([A-Z]+)/g
+const camelSplitter = /(.)([A-Z]+)/g;
 
 export function unCamelize(string) {
-    return string.replace(camelSplitter, function (m, previous, uppers) {
-        return previous + ' ' + uppers.toLowerCase().split('').join(' ')
-    })
+    return string.replace(camelSplitter,
+        (m, previous, uppers) => previous + ' ' + uppers.toLowerCase().split('').join(' '))
 }
 
 export function capitalizeToNormalCase(string) {
+    string = string?.trim();
+    if (!string) return string;
+    if (string.length === 0) return string;
+    if (string.length === 1) return string;
     return toNoCase(string).split(' ')
-        .map(x => x[0].toUpperCase() + x.slice(1).toLowerCase());
+        .map(x => x[0].toUpperCase() + x.slice(1).toLowerCase())
+        .join(" ");
 }
 
 export const generateRandomString = (length) => {
@@ -95,16 +98,15 @@ export const generateRandomString = (length) => {
 export function globToRegExp(glob) {
     const escapedGlob = glob
         // Escape characters that have special meaning in regex
-        .replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&")
+        .replace(/[\-\[\]\/\{\}\(\)\+\.\\\^\$\|]/g, "\\$&")
         // Convert glob wildcards to regex
         .replace(/\*/g, '[^\\/]*')
-        .replace(/\?/g, '.');
+        .replace(/\?/g, '[^\\/]');
 
     // Create a RegExp object, starting with "^" to match the beginning of the string
     // and ending with "$" to match the end of the string.
     return new RegExp(`^${escapedGlob}$`);
 }
-
 
 
 export function replaceParams(url, params) {
@@ -123,4 +125,13 @@ export function btoa(buffer) {
 
 export function removeAnsiColors(str) {
     return str.replace(/\x1B\[[0-9;]*[mK]/g, '');
+}
+
+export function streamToString(stream) {
+    const chunks = [];
+    return new Promise((resolve, reject) => {
+        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('error', (err) => reject(err));
+        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    });
 }
