@@ -30,7 +30,7 @@ export function isServiceAware(serviceAware) {
         serviceAware?.services instanceof ServicesContext;
 }
 
-export function mergeDefaultServicesOptions(options) {
+export function mergeDefaultServicesOptions(options = {}) {
     let {
         factories = {},
     } = options;
@@ -46,7 +46,7 @@ export function mergeDefaultServicesOptions(options) {
 }
 
 export function createAppServicesInstance(options, type) {
-    options = mergeDefaultServicesOptions(options);
+    options = mergeDefaultServicesOptions(options ?? {});
     return new ServicesContext(options, type);
 }
 

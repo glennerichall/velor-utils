@@ -1,4 +1,5 @@
 import {
+    createAppServicesInstance,
     getServiceBinder,
     isServiceAware,
     SCOPE_INSTANCE,
@@ -192,4 +193,9 @@ test.describe('ServicesContext and Provider (Scope Management) with Dependency I
             expect(() => servicesContext.provider.customService()).to.throw(Error, /Define scope "undefinedScope"/);
         });
     });
+
+    test("should create services without options", ()=> {
+        const services = createAppServicesInstance();
+        expect(isServiceAware(services)).to.be.true;
+    })
 });
