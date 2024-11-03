@@ -1,6 +1,7 @@
 import {
     MapArray,
-    MapMap
+    MapMap,
+    MapSet
 } from "../utils/map.mjs";
 
 import {setupTestContext} from "../test/setupTestContext.mjs";
@@ -12,6 +13,107 @@ const {
 } = setupTestContext();
 
 test.describe("Map tests", function () {
+    test.describe('MapArrayMixin', () => {
+        let mapArray;
+        test.beforeEach(() => {
+            mapArray = new MapArray();
+        });
+        test('push - multiple values', () => {
+            mapArray.push('key1', 'value1', 'value2');
+            expect(mapArray.get('key1')).to.deep.equal(['value1', 'value2']);
+        });
+
+        test('find - not found', () => {
+            mapArray.push('key1', 'value1');
+            const res = mapArray.find('key1', val => val === 'value2');
+            expect(res).to.be.undefined;
+        });
+
+        test('findIndex - not found', () => {
+            mapArray.push('key1', 'value1');
+            const index = mapArray.findIndex('key1', val => val === 'value2');
+            expect(index).to.equal(-1);
+        });
+
+        test('pop - empty', () => {
+            const value = mapArray.pop('key1');
+            expect(value).to.be.undefined;
+        });
+
+        test('push', () => {
+            mapArray.push('key1', 'value1');
+            expect(mapArray.get('key1')).to.deep.equal(['value1']);
+        });
+
+        test('find', () => {
+            mapArray.push('key1', 'value1');
+            const res = mapArray.find('key1', val => val === 'value1');
+            expect(res).to.equal('value1');
+        });
+
+        test('findIndex', () => {
+            mapArray.push('key1', 'value1');
+            const index = mapArray.findIndex('key1', val => val === 'value1');
+            expect(index).to.equal(0);
+        });
+
+        test('pop', () => {
+            mapArray.push('key1', 'value1');
+            const value = mapArray.pop('key1');
+            expect(value).to.equal('value1');
+            expect(mapArray.get('key1')).to.be.undefined;
+        });
+    });
+
+    test.describe('MapMapMixin', () => {
+        let mapMap;
+        test.beforeEach(() => {
+            mapMap = new MapMap();
+        });
+
+        test('hget - key not set', () => {
+            const res = mapMap.hget('mapName', 'key1');
+            expect(res).to.be.undefined;
+        });
+
+        test('hdel - key not set', () => {
+            mapMap.hdel('mapName', 'key1');
+            const res = mapMap.hget('mapName', 'key1');
+            expect(res).to.be.undefined;
+        });
+
+        test('hset and hget', () => {
+            mapMap.hset('mapName', 'key1', 'value1');
+            const res = mapMap.hget('mapName', 'key1');
+            expect(res).to.equal('value1');
+        });
+
+        test('hdel', () => {
+            mapMap.hset('mapName', 'key1', 'value1');
+            mapMap.hdel('mapName', 'key1');
+            const res = mapMap.hget('mapName', 'key1');
+            expect(res).to.be.undefined;
+        });
+    });
+
+    test.describe('MapSetMixin', () => {
+        let mapSet;
+        test.beforeEach(() => {
+            mapSet = new MapSet();
+        });
+
+        test('isMember - value not added', () => {
+            const res = mapSet.isMember('key1', 'value1');
+            expect(res).to.be.false;
+        });
+
+        test('add and isMember', () => {
+            mapSet.add('key1', 'value1');
+            const res = mapSet.isMember('key1', 'value1');
+            expect(res).to.be.true;
+        });
+    });
+
     test('should manip arrays', () => {
         let map = new MapArray();
         map.push('toto', 3, 4, 5, 6, 7);
