@@ -363,17 +363,19 @@ export function createProxyInjectArgBefore(getArg, manager) {
 export function forwardMethods(target, source) {
     let original = Object.getOwnPropertyNames(target)
 
-    Object.getOwnPropertyNames(source)
+    let currentObject = source
+    while (currentObject !== Object.prototype) {
+        Object.getOwnPropertyNames(currentObject)
+            .filter(prop => prop !== 'constructor' &&
+                typeof currentObject[prop] === 'function' &&
+                !original.includes(prop))
+            .forEach(method => {
+                target[method] = (...args) => source[method].apply(source, args)
+            })
+        currentObject = Object.getPrototypeOf(currentObject)
+    }
 
-        .filter(prop => prop !== 'constructor' &&
-            typeof source[prop] === 'function' &&
-            !original.includes(prop))
-
-        .forEach(method =>
-            target[method] =
-                (...args) => source[method].apply(source, args));
-
-    return target;
+    return target
 }
 
 
@@ -394,4 +396,22 @@ function makeAsyncProxy(instance) {
             return originalValue;
         }
     });
+}
+
+export function getAllMethods(obj) {
+
+    if(!obj) return [];
+
+    let props = new Set();
+    let currentObj = obj.constructor.prototype;
+
+    while (Object.getPrototypeOf(currentObj)) {
+        Object.getOwnPropertyNames(currentObj)
+            .filter(prop => typeof currentObj[prop] === 'function' && prop !== 'constructor')
+            .forEach(prop => props.add(prop));
+
+        currentObj = Object.getPrototypeOf(currentObj);
+    }
+
+    return Array.from(props);
 }

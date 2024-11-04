@@ -2,7 +2,8 @@ import {setupTestContext} from "../test/setupTestContext.mjs";
 import {
     createProxyReplaceArguments,
     createProxyReplaceResult,
-    forwardMethods
+    forwardMethods,
+    getAllMethods
 } from "../utils/proxy.mjs";
 
 
@@ -17,8 +18,12 @@ test.describe('proxy utils', () => {
     test.describe('Test ducktyping of methods', () => {
         test('should apply source methods to target', () => {
             const source = {
-                greet() { return "Hello, Source!"; },
-                bye() { return "Source is leaving."; }
+                greet() {
+                    return "Hello, Source!";
+                },
+                bye() {
+                    return "Source is leaving.";
+                }
             };
 
             const target = {};
@@ -33,7 +38,9 @@ test.describe('proxy utils', () => {
 
         it('should apply source methods to target 2', () => {
             const source = {
-                greet(name) { return `Hello, ${name}!`; },
+                greet(name) {
+                    return `Hello, ${name}!`;
+                },
             };
 
             const target = {};
@@ -44,13 +51,32 @@ test.describe('proxy utils', () => {
             expect(target.greet('John')).to.eql("Hello, John!");
         });
 
+        it('should apply source methods to target 3', () => {
+            class Source {
+                greet(name) {
+                    return `Hello, ${name}!`;
+                }
+            }
+
+            const target = {};
+
+            forwardMethods(target, new Source());
+
+            expect(target).to.have.property('greet');
+            expect(target.greet('John')).to.eql("Hello, John!");
+        });
+
         it('should not modify existing methods in target', () => {
             const source = {
-                greet(name) { return `Hello, ${name}!`; },
+                greet(name) {
+                    return `Hello, ${name}!`;
+                },
             };
 
             const target = {
-                greet(name) { return `Goodbye, ${name}!`; },
+                greet(name) {
+                    return `Goodbye, ${name}!`;
+                },
             };
 
             forwardMethods(target, source);
@@ -60,10 +86,12 @@ test.describe('proxy utils', () => {
 
         it('should not affect source object', () => {
             const source = {
-                greet(name) { return `Hello, ${name}!`; },
+                greet(name) {
+                    return `Hello, ${name}!`;
+                },
             };
 
-            const sourceCopy = { ...source };
+            const sourceCopy = {...source};
             const target = {};
 
             forwardMethods(target, source);
@@ -141,7 +169,7 @@ test.describe('proxy utils', () => {
         });
 
         test('should not affect non-function properties', async () => {
-            const target = { foo: 'bar' };
+            const target = {foo: 'bar'};
             const getResult = () => 'baz';
             const proxy = createProxyReplaceResult(target, getResult);
 
@@ -161,5 +189,90 @@ test.describe('proxy utils', () => {
     });
 
 
+    test.describe('createProxyReplaceResult', () => {
 
+
+        // Test normal case with object that has methods
+        test('getAllMethods should return the correct methods of given object', async () => {
+            function TestObject() {
+            }
+
+            TestObject.prototype.methodA = function () {
+            }
+            TestObject.prototype.methodB = function () {
+            }
+
+            const result = getAllMethods(new TestObject());
+
+            expect(result).to.have.length(2);
+            expect(result).to.have.members(['methodA', 'methodB']);
+        });
+
+        // Test normal case with object that has no methods
+        test('getAllMethods should return an empty array if there are no methods', async () => {
+            function TestObject() {
+            }
+
+            const result = getAllMethods(new TestObject());
+
+            expect(result).to.be.empty;
+        });
+
+        // Test with object that has methods in prototype chain
+        test('getAllMethods should return methods from prototype chain', async () => {
+            function TestObject() {
+            }
+
+            TestObject.prototype = Object.create(Array.prototype);
+            TestObject.prototype.constructor = TestObject;
+
+            const result = getAllMethods(new TestObject());
+
+            expect(result).to.include(Array.prototype.map.name);
+        });
+
+        // Test with null object
+        test('getAllMethods should return an empty array if null is passed', async () => {
+            const result = getAllMethods(null);
+
+            expect(result).to.be.empty;
+        });
+
+        // Test with undefined
+        test('getAllMethods should return an empty array if undefined is passed', async () => {
+            const result = getAllMethods(undefined);
+            expect(result).to.be.empty;
+        });
+
+        // Edge case: Object with non-function members
+        test('getAllMethods should not include non-function properties', async () => {
+            function TestObject() {
+            }
+
+            TestObject.prototype.methodA = function () {
+            }
+            TestObject.prototype.nonFunctionProperty = 'I am not a function';
+
+            const result = getAllMethods(new TestObject());
+
+            expect(result).to.have.length(1);
+            expect(result).to.have.members(['methodA']);
+        });
+
+        // Edge case: Object with non-enumerable methods
+        test('getAllMethods should include non-enumerable methods', async () => {
+            function TestObject() {
+            }
+
+            Object.defineProperty(TestObject.prototype, 'nonEnumerableMethod', {
+                value: function () {
+                },
+                enumerable: false,
+            });
+
+            const result = getAllMethods(new TestObject());
+
+            expect(result).to.contain('nonEnumerableMethod');
+        });
+    });
 })
