@@ -360,6 +360,22 @@ export function createProxyInjectArgBefore(getArg, manager) {
     });
 }
 
+export function forwardMethods(target, source) {
+    let original = Object.getOwnPropertyNames(target)
+
+    Object.getOwnPropertyNames(source)
+
+        .filter(prop => prop !== 'constructor' &&
+            typeof source[prop] === 'function' &&
+            !original.includes(prop))
+
+        .forEach(method =>
+            target[method] =
+                (...args) => source[method].apply(source, args));
+
+    return target;
+}
+
 
 function makeAsyncProxy(instance) {
     return new Proxy(instance, {
@@ -368,7 +384,7 @@ function makeAsyncProxy(instance) {
 
             // Check if the property is a function
             if (typeof originalValue === 'function') {
-                return async function(...args) {
+                return async function (...args) {
                     // Invoke the original method with the passed arguments
                     return await originalValue.apply(target, args);
                 };
