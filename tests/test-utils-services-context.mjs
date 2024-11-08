@@ -6,9 +6,9 @@ import {
     SCOPE_PROTOTYPE,
     SCOPE_SINGLETON,
     ServicesContext
-} from "../utils/injection/ServicesContext.mjs";
+} from "../injection/ServicesContext.mjs";
 import sinon from "sinon";
-import {getProvider} from "../utils/injection/baseServices.mjs";
+import {getProvider} from "../injection/baseServices.mjs";
 
 import {setupTestContext} from "../test/setupTestContext.mjs";
 

@@ -1,7 +1,7 @@
 import {getProvider} from "./baseServices.mjs";
 import {s_envNameResolver, s_logger} from "./serviceKeys.mjs";
 import {isServiceAware} from "./ServicesContext.mjs";
-import {noOp} from "../functional.mjs";
+import {noOp} from "../utils/functional.mjs";
 import winston from "winston";
 
 export function getEnvNameResolver(serviceAware) {

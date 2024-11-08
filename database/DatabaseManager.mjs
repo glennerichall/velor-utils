@@ -1,7 +1,7 @@
 import {bindOnAfterMethods} from "../utils/proxy.mjs";
 import {isTrue} from "../utils/predicates.mjs";
 
-import {getLogger} from "../utils/injection/services.mjs";
+import {getLogger} from "../injection/services.mjs";
 import {retry} from "../utils/functional.mjs";
 
 import {ClientRetry} from "./ClientRetry.mjs";

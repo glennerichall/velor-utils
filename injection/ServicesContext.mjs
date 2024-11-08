@@ -1,5 +1,5 @@
 import {isClass} from "./isClass.mjs";
-import {getGlobalContext} from "../global.mjs";
+import {getGlobalContext} from "../utils/global.mjs";
 import {baseFactories} from "./baseFactories.mjs";
 
 let __id__ = 0;

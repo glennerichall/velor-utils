@@ -4,7 +4,7 @@ import {
     ENV_DEVELOPMENT,
     ENV_PRODUCTION,
     ENV_STAGING
-} from "../../env.mjs";
+} from "../env.mjs";
 
 export function getNodeEnv(services) {
     return getEnvironment(services).NODE_ENV;

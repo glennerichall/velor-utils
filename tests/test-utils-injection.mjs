@@ -1,7 +1,7 @@
-import {isClass} from "../utils/injection/isClass.mjs";
+import {isClass} from "../injection/isClass.mjs";
 import {setupTestContext} from "../test/setupTestContext.mjs";
-import {createInstance} from "../utils/injection/createInstance.mjs";
-import {ServicesContext} from "../utils/injection/ServicesContext.mjs";
+import {createInstance} from "../injection/createInstance.mjs";
+import {ServicesContext} from "../injection/ServicesContext.mjs";
 
 const {
     expect,

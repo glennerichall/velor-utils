@@ -1,12 +1,12 @@
 import {setupTestContext} from "../test/setupTestContext.mjs";
-import {createAppServicesInstance, ENV_NAME_PREFIX, ServicesContext} from "../utils/injection/ServicesContext.mjs";
+import {createAppServicesInstance, ENV_NAME_PREFIX, ServicesContext} from "../injection/ServicesContext.mjs";
 import {
     getEnvironment,
     getEnvValue,
     getEnvValueIndirect,
     getEnvValues,
     getNodeEnv, isProduction
-} from "../utils/injection/baseServices.mjs";
+} from "../injection/baseServices.mjs";
 import {ENV_TEST} from "../env.mjs";
 
 const {
