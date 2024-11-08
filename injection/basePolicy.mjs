@@ -16,8 +16,9 @@ import {
     isStaging,
     setEnvPrefix
 } from "./baseServices.mjs";
+import {getServiceBinder} from "./ServicesContext.mjs";
 
-export function getBasePolicy(policy = {}) {
+export function getBaseServicesProvider(policy = {}) {
     return {
         ...policy,
         getLogger,
@@ -36,5 +37,6 @@ export function getBasePolicy(policy = {}) {
         getConstants,
         getFactories,
         getProvider,
+        getServiceBinder
     };
 }
