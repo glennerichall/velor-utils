@@ -17,7 +17,7 @@ import {
     setEnvPrefix
 } from "./baseServices.mjs";
 
-export function getBasePolicy(policy) {
+export function getBasePolicy(policy = {}) {
     return {
         ...policy,
         getLogger,
