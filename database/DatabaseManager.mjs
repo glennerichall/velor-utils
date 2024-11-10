@@ -1,8 +1,9 @@
 import {bindOnAfterMethods} from "../utils/proxy.mjs";
 import {isTrue} from "../utils/predicates.mjs";
-
-import {getLogger} from "../injection/services.mjs";
-import {retry} from "../utils/functional.mjs";
+import {
+    noOp,
+    retry
+} from "../utils/functional.mjs";
 
 import {ClientRetry} from "./ClientRetry.mjs";
 import {ClientProfiler} from "./ClientProfiler.mjs";
@@ -13,12 +14,24 @@ import {beginTransact as beginTransactFct} from "./beginTransact.mjs";
 import {queryRaw as queryRawFct} from "./queryRaw.mjs";
 import {bindStatements as bindStatementsFct} from "./bindStatements.mjs";
 
+const noOpLogger = {
+    trace: noOp,
+    silly: noOp,
+    debug: noOp,
+    warn: noOp,
+    info: noOp,
+    error: noOp,
+    fatal: noOp,
+    log: noOp,
+};
+
 export const createDatabaseManagerClass = ({
                                                logQueries = isTrue(process.env.LOG_DATABASE_QUERIES),
                                                createConnectionPool = createConnectionPoolFct,
                                                beginTransact = beginTransactFct,
                                                bindStatements = bindStatementsFct,
                                                queryRaw = queryRawFct,
+                                               getLogger = () => noOpLogger
                                            } = {}) => {
     return class DatabaseManager {
         #pool;
