@@ -23,7 +23,7 @@ export class Timer {
 
     fps() {
         let elapsed = this.elapsed();
-        return Math.round(1000/elapsed * this._frames);
+        return Math.round(1000 / elapsed * this._frames);
     }
 
     restart() {
@@ -40,6 +40,10 @@ export class Timer {
             }
         }
         return this.span();
+    }
+
+    static start() {
+        return new Timer();
     }
 
     static instance = new Timer();
