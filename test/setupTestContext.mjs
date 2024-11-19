@@ -17,7 +17,7 @@ use(sinonChai);
 
 export const test = baseTest;
 
-export function setupTestContext(fixtures) {
+export function setupTestContext(fixtures = {}) {
     const test = baseTest.extend(fixtures);
     return {
         test,
