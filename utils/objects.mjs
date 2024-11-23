@@ -1,8 +1,26 @@
+// export function deepMerge(obj1, obj2) {
+//     const recursiveMerge = (a, b) => {
+//         for (let key in b) {
+//             // If property is an object, and both a and b have this property
+//             if (b[key] && typeof b[key] === 'object' && a.hasOwnProperty(key)) {
+//                 a[key] = recursiveMerge({...a[key]}, b[key]);
+//             } else {
+//                 a[key] = b[key];
+//             }
+//         }
+//         return a;
+//     };
+//     return recursiveMerge({...obj1}, obj2);
+// }
+
 export function deepMerge(obj1, obj2) {
     const recursiveMerge = (a, b) => {
         for (let key in b) {
-            // If property is an object, and both a and b have this property
-            if (b[key] && typeof b[key] === 'object' && a.hasOwnProperty(key)) {
+            if (Array.isArray(b[key])) {
+                // If property is an array, replace the array
+                a[key] = b[key];
+            } else if (b[key] && typeof b[key] === 'object' && a.hasOwnProperty(key)) {
+                // If property is an object, and both a and b have this property
                 a[key] = recursiveMerge({...a[key]}, b[key]);
             } else {
                 a[key] = b[key];
@@ -44,12 +62,31 @@ export function shallowEqual(object1, object2) {
     }
 
     for (const key of keys1) {
+        if (Number.isNaN(object1[key]) &&
+            Number.isNaN(object2[key])) {
+            continue;
+        }
         if (object1[key] !== object2[key]) {
             return false;
         }
     }
 
     return true;
+}
+
+const initialStateSym = Symbol('initialState');
+
+export function saveInitialState(object) {
+    object[initialStateSym] = {...object};
+    return object;
+}
+
+export function isPristine(object) {
+    let initialState = object[initialStateSym];
+    if (initialState === undefined) {
+        return undefined;
+    }
+    return shallowEqual(initialState, object);
 }
 
 export function excludeKeys(object, predicate) {
