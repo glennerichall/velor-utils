@@ -75,6 +75,10 @@ export const EmitterMixin = Base => class extends Base {
         });
     }
 
+    waitOn(event, filter) {
+        return this.awaitOn(event, filter);
+    }
+
     on(event, callback) {
         this.#idCount++;
         const id = this.#idCount;
