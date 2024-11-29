@@ -1,4 +1,5 @@
 import {
+    chain,
     composeRetryUntil,
     debounce
 } from "../utils/functional.mjs";
@@ -71,5 +72,33 @@ test.describe('functional', () => {
         expect(args).to.deep.eq(['toto', 'tata']);
         expect(count).to.eq(3);
     })
+
+
+    test.describe('chain function', () => {
+        const mockF1 = (a, b) => a + b;
+        const mockF2 = (a) => a * a;
+        const mockF3 = (a) => a - 3;
+
+        test('Normal case: Chain of functions return correct output', async () => {
+            const chained = chain(mockF1, mockF2, mockF3);
+            expect(chained(2, 3)).to.equals(22); // ((2+3)^2 - 3 = 25 - 3 = 22)
+        });
+
+        test('Edge case: Chain of function with single function return correct output', async () => {
+            const chained = chain(mockF1);
+            expect(chained(2, 3)).to.equals(5); // 2+3 = 5
+        });
+
+        test('Edge case: Chain of function with single param return correct output', async () => {
+            const chained = chain(mockF2, mockF3);
+            expect(chained(5)).to.equals(22); // (5^2 - 3 = 25 - 3 = 22)
+        });
+
+
+        test('Edge case: Empty function chain returns undefined', async () => {
+            const chained = chain();
+            expect(chained(5, 3)).to.equals(undefined);
+        });
+    });
 
 })

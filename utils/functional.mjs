@@ -1,5 +1,16 @@
 import {timeoutAsync as asyncTimeout} from "./sync.mjs";
 
+export function chain(...functions) {
+    return (...args) => {
+        let result;
+        for (let fun of functions) {
+            result = fun(...args);
+            args = [result];
+        }
+        return result;
+    };
+}
+
 export function broadcast(...functions) {
     return (...args) => {
         return functions.map(f => f(...args));
