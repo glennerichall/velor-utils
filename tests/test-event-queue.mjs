@@ -1,6 +1,7 @@
 import sinon from 'sinon';
 import {setupTestContext} from "../test/setupTestContext.mjs";
 import {EventQueue} from "../utils/EventQueue.mjs";
+import {Emitter} from "../utils/Emitter.mjs";
 
 const {
     expect,
@@ -102,9 +103,18 @@ describe('EventQueue', () => {
     });
 
     describe('integration tests', () => {
+        let emitterReal, mockEmitter;
+        let queue;
+
+        beforeEach(() => {
+            mockEmitter = emitter;
+            emitterReal = new Emitter();
+            queue = new EventQueue(emitterReal);
+        });
+
         it('should handle multiple events and clear appropriately', async () => {
             eventQueue.all();
-            const [listener] = emitter.onAny.firstCall.args;
+            const [listener] = mockEmitter.onAny.firstCall.args;
 
             // Emit events
             listener('event1', 'data1');
@@ -121,6 +131,68 @@ describe('EventQueue', () => {
             expect(eventQueue.dequeue('event1')).to.be.undefined;
             expect(eventQueue.dequeue('event2')).to.be.undefined;
         });
+
+        it('initialize should register listener on emitter', async () => {
+            const onAnySpy = sinon.spy(emitterReal, 'onAny');
+            queue.all();
+            expect(onAnySpy.called).to.be.true;
+        });
+
+        it('clear event', async () => {
+            queue.all();
+            emitterReal.emit('testEvent', 'data1');
+            emitterReal.emit('testEvent2', 'datae1');
+            queue.clear('testEvent');
+
+            emitterReal.emit('testEvent', 'data2');
+
+            let result = await queue.waitDequeue('testEvent');
+            expect(result).to.deep.equal(['data2']);
+
+            result = await queue.waitDequeue('testEvent2');
+            expect(result).to.deep.equal(['datae1']);
+        });
+
+        it('clear all ', async () => {
+            queue.all();
+            emitterReal.emit('testEvent1', 'data1');
+            emitterReal.emit('testEvent2', 'data2');
+
+            queue.clear();
+
+            emitterReal.emit('testEvent1', 'data3');
+            emitterReal.emit('testEvent2', 'data4');
+
+            let result = await queue.waitDequeue('testEvent1');
+            expect(result).to.deep.equal(['data3']);
+
+            result = await queue.waitDequeue('testEvent2');
+            expect(result).to.deep.equal(['data4']);
+        });
+
+        it('dequeue should resolve with the correct data', async () => {
+            queue.all();
+            emitterReal.emit('testEvent', 'data1');
+            emitterReal.emit('testEvent', 'data2');
+
+            let result = await queue.waitDequeue('testEvent');
+            expect(result).to.deep.equal(['data1']);
+
+            result = await queue.waitDequeue('testEvent');
+            expect(result).to.deep.equal(['data2']);
+        });
+
+        it('dequeue should resolve when new event data is provided', async () => {
+            queue.all();
+            setTimeout(() => emitterReal.emit('testEvent', 'data'), 500);
+            const result = await queue.waitDequeue('testEvent');
+            expect(result).to.deep.equal(['data']);
+        });
+
+        it('should dequeue nothing if empty', ()=> {
+            queue.all();
+            expect(queue.dequeue('testEvent')).to.be.undefined;
+        })
     });
 
     describe('Specific event', ()=>{
