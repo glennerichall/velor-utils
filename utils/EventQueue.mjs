@@ -3,9 +3,17 @@ import {MapArray} from "./map.mjs";
 export class EventQueue {
     #emitter;
     #events = new MapArray();
+    #options;
 
-    constructor(emitter) {
+    constructor(emitter, options = {}) {
         this.#emitter = emitter;
+        let {
+            maxEvents = 100
+        } = options;
+
+        this.#options = {
+            maxEvents
+        };
     }
 
     all() {
@@ -17,7 +25,11 @@ export class EventQueue {
 
     listen(event) {
         this.#emitter.on(event, (...data) => {
+            if (this.#events.length(event) > this.#options.maxEvents) {
+                this.#events.pop(event);
+            }
             this.#events.push(event, data);
+
         });
         return this;
     }

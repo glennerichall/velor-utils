@@ -56,6 +56,14 @@ export const MapArrayMixin = Parent => class extends Parent {
             return result;
         }
     }
+
+    length(key) {
+        let array = this.map.get(key).length;
+        if (array) {
+            return array.length;
+        }
+        return 0;
+    }
 }
 
 export const MapMapMixin = Parent => class extends Parent {
