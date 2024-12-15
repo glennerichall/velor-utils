@@ -2,6 +2,8 @@ import sinon from 'sinon';
 import {setupTestContext} from "../test/setupTestContext.mjs";
 import {EventQueue} from "../utils/EventQueue.mjs";
 import {Emitter} from "../utils/Emitter.mjs";
+import {deny} from "../utils/predicates.mjs";
+import {timeoutAsync} from "../utils/sync.mjs";
 
 const {
     expect,
@@ -189,13 +191,13 @@ describe('EventQueue', () => {
             expect(result).to.deep.equal(['data']);
         });
 
-        it('should dequeue nothing if empty', ()=> {
+        it('should dequeue nothing if empty', () => {
             queue.all();
             expect(queue.dequeue('testEvent')).to.be.undefined;
         })
     });
 
-    describe('Specific event', ()=>{
+    describe('Specific event', () => {
         it('should push specific event to #events when an event is emitted', () => {
             eventQueue.listen('testEvent');
             const [event, listener] = emitter.on.firstCall.args;
@@ -205,5 +207,69 @@ describe('EventQueue', () => {
             const dequeuedData = eventQueue.dequeue('testEvent');
             expect(dequeuedData).to.deep.equal(['data1', 'data2']);
         });
+
+        it('should dequeue filtered events', async () => {
+            eventQueue.listen('testEvent');
+            const [event, listener] = emitter.on.firstCall.args;
+
+            // Simulate an event emission
+            listener('data1', 'data2');
+
+            let filter = data => data[1] === 'data2' && data[0] === 'data1';
+            filter = sinon.spy(filter);
+            const dequeuedData = eventQueue.dequeue('testEvent', filter);
+            expect(dequeuedData).to.deep.equal(['data1', 'data2']);
+
+            expect(filter).calledOnce;
+        })
+
+        it('should ignore filtered events', async () => {
+            eventQueue.listen('testEvent');
+            const [event, listener] = emitter.on.firstCall.args;
+
+            // Simulate an event emission
+            listener('data1', 'data2');
+
+            let filter = deny;
+            filter = sinon.spy(filter);
+            const dequeuedData = eventQueue.dequeue('testEvent', filter);
+            expect(dequeuedData).to.be.undefined;
+            expect(filter).calledOnce;
+        })
+
+        it('should ignore filtered events async', async () => {
+            let emitter = new Emitter();
+            let eventQueue = new EventQueue(emitter);
+            eventQueue.listen('testEvent');
+            emitter.emit('testEvent', 'data1', 'data2');
+
+            let filter = deny;
+            filter = sinon.spy(filter);
+            const dequeuedData = eventQueue.waitDequeue('testEvent', filter);
+            expect(filter).calledOnce;
+
+            let result = await Promise.race([
+                dequeuedData,
+                timeoutAsync(200).then(() => 'timedOut')]
+            );
+            expect(result).to.eq('timedOut')
+        })
+
+        it('should dequeue filtered events async', async () => {
+            let emitter = new Emitter();
+            let eventQueue = new EventQueue(emitter);
+            eventQueue.listen('testEvent');
+
+            let filter = data => data[1] === 'data2' && data[0] === 'data1';
+            filter = sinon.spy(filter);
+            const dequeuedData = eventQueue.waitDequeue('testEvent', filter);
+
+            emitter.emit('testEvent', 'data1', 'data2');
+            expect(filter).calledOnce;
+
+            let result = await dequeuedData;
+
+            expect(result).to.deep.equal(['data1', 'data2']);
+        })
     })
 });

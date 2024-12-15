@@ -54,6 +54,14 @@ export function notAsync(predicate) {
     return async (...args) => !await predicate(...args);
 }
 
-export function isTrue(value){
+export function isTrue(value) {
     return value === "true" || value === true;
+}
+
+export function accept() {
+    return true;
+}
+
+export function deny() {
+    return false;
 }

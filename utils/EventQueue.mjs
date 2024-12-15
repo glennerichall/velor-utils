@@ -31,14 +31,21 @@ export class EventQueue {
         return this;
     }
 
-    dequeue(event) {
-        return this.#events.pop(event, 0);
+    dequeue(event, filter) {
+        let index = 0;
+        if (filter) {
+            index = this.#events.findIndex(event, filter);
+        }
+        if (index >= 0) {
+            return this.#events.pop(event, index);
+        }
+        return undefined;
     }
 
-    async waitDequeue(event) {
-        let data = this.dequeue(event);
+    async waitDequeue(event, filter) {
+        let data = this.dequeue(event, filter);
         if (data === undefined) {
-            return this.#emitter.waitOn(event);
+            return this.#emitter.waitOn(event, filter);
         }
         return data;
     }

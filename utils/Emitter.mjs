@@ -62,7 +62,7 @@ export const EmitterMixin = Base => class extends Base {
 
     once(event, callback, filter) {
         const off = this.on(event, (...args) => {
-            if (!filter || filter(event, ...args)) {
+            if (!filter || filter(args)) {
                 off();
                 callback(...args);
             }
