@@ -63,6 +63,15 @@ test.describe("Map tests", function () {
             expect(value).to.equal('value1');
             expect(mapArray.get('key1')).to.be.undefined;
         });
+
+        test('length', ()=> {
+            mapArray.push('key1', 'value1');
+            expect(mapArray.length('key1')).to.equal(1);
+        })
+
+        test('length empty', ()=> {
+            expect(mapArray.length('key1')).to.equal(0);
+        })
     });
 
     test.describe('MapMapMixin', () => {

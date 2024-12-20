@@ -58,7 +58,7 @@ export const MapArrayMixin = Parent => class extends Parent {
     }
 
     length(key) {
-        let array = this.map.get(key).length;
+        let array = this.map.get(key);
         if (array) {
             return array.length;
         }
