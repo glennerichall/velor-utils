@@ -144,15 +144,16 @@ class MapProviderSelf extends Map {
     }
 }
 
+const kp_map = Symbol();
+
 class MapProviderHolder {
-    #map;
 
     constructor(map) {
-        this.#map = map;
+        this[kp_map] = map;
     }
 
     get map() {
-        return this.#map;
+        return this[kp_map];
     }
 }
 

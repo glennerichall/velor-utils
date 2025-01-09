@@ -1,34 +1,37 @@
 import {MapArray} from "./map.mjs";
 
+const kp_emitter = Symbol();
+const kp_events = Symbol();
+const kp_options = Symbol();
+
 export class EventQueue {
-    #emitter;
-    #events = new MapArray();
-    #options;
 
     constructor(emitter, options = {}) {
-        this.#emitter = emitter;
+        this[kp_emitter] = emitter;
         let {
             maxEvents = 100
         } = options;
 
-        this.#options = {
+        this[kp_events] = new MapArray();
+
+        this[kp_options] = {
             maxEvents
         };
     }
 
     all() {
-        this.#emitter.onAny((event, ...data) => {
-            this.#events.push(event, data);
+        this[kp_emitter].onAny((event, ...data) => {
+            this[kp_events].push(event, data);
         });
         return this;
     }
 
     listen(event) {
-        this.#emitter.on(event, (...data) => {
-            if (this.#events.length(event) > this.#options.maxEvents) {
-                this.#events.pop(event);
+        this[kp_emitter].on(event, (...data) => {
+            if (this[kp_events].length(event) > this[kp_options].maxEvents) {
+                this[kp_events].pop(event);
             }
-            this.#events.push(event, data);
+            this[kp_events].push(event, data);
 
         });
         return this;
@@ -36,9 +39,9 @@ export class EventQueue {
 
     clear(event) {
         if (event) {
-            this.#events.delete(event);
+            this[kp_events].delete(event);
         } else {
-            this.#events.clear();
+            this[kp_events].clear();
         }
         return this;
     }
@@ -46,10 +49,10 @@ export class EventQueue {
     dequeue(event, filter) {
         let index = 0;
         if (filter) {
-            index = this.#events.findIndex(event, filter);
+            index = this[kp_events].findIndex(event, filter);
         }
         if (index >= 0) {
-            return this.#events.pop(event, index);
+            return this[kp_events].pop(event, index);
         }
         return undefined;
     }
@@ -57,7 +60,7 @@ export class EventQueue {
     async waitDequeue(event, filter) {
         let data = this.dequeue(event, filter);
         if (data === undefined) {
-            return this.#emitter.waitOn(event, filter);
+            return this[kp_emitter].waitOn(event, filter);
         }
         return data;
     }

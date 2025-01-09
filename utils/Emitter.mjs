@@ -1,25 +1,30 @@
 import {MapArray} from "./map.mjs";
 
+const kp_listeners = Symbol();
+const kp_globals = Symbol();
+const kp_idCount = Symbol();
+const kp_async = Symbol();
+const kp_asyncTimeout = Symbol();
+const km_emit = Symbol();
+
 export const EmitterMixin = Base => class extends Base {
-    #listeners = new MapArray();
-    #globals = [];
-    #idCount = 1;
-    #async;
-    #asyncTimeout;
 
     constructor({async = false, asyncTimeout = 0} = {}, ...args) {
         super(...args);
-        this.#async = async;
-        this.#asyncTimeout = asyncTimeout;
+        this[kp_async] = async;
+        this[kp_asyncTimeout] = asyncTimeout;
+        this[kp_idCount] = 1;
+        this[kp_globals] = [];
+        this[kp_listeners] = new MapArray();
     }
 
-    #emit(event, ...value) {
+    [km_emit](event, ...value) {
         return () => {
 
             // copy arrays for iteration to avoid missing callbacks if any are removed while emitting
-            let listeners = this.#listeners.get(event) ?? [];
+            let listeners = this[kp_listeners].get(event) ?? [];
             listeners = [...listeners];
-            let globals = [...this.#globals];
+            let globals = [...this[kp_globals]];
 
             for (let listener of listeners) {
                 listener.callback(...value)
@@ -32,28 +37,28 @@ export const EmitterMixin = Base => class extends Base {
     }
 
     emitNextTick(event, ...value) {
-        let emit = this.#emit(event, ...value);
+        let emit = this[km_emit](event, ...value);
         setTimeout(emit, 0);
     }
 
     emit(event, ...value) {
-        let emit = this.#emit(event, ...value);
+        let emit = this[km_emit](event, ...value);
 
-        if (!this.#async) {
+        if (!this[kp_async]) {
             emit();
         } else {
-            setTimeout(emit, this.#asyncTimeout);
+            setTimeout(emit, this[kp_asyncTimeout]);
         }
     }
 
     onAny(callback) {
-        this.#idCount++;
-        this.#globals.push({id: this.#idCount, callback});
-        const id = this.#idCount;
+        this[kp_idCount]++;
+        this[kp_globals].push({id: this[kp_idCount], callback});
+        const id = this[kp_idCount];
         return () => {
-            for (let i = 0; i < this.#globals.length; i++) {
-                if (this.#globals[i].id === id) {
-                    this.#globals.splice(i, 1);
+            for (let i = 0; i < this[kp_globals].length; i++) {
+                if (this[kp_globals][i].id === id) {
+                    this[kp_globals].splice(i, 1);
                     break;
                 }
             }
@@ -80,31 +85,31 @@ export const EmitterMixin = Base => class extends Base {
     }
 
     on(event, callback) {
-        this.#idCount++;
-        const id = this.#idCount;
-        this.#listeners.push(event, {id, callback});
+        this[kp_idCount]++;
+        const id = this[kp_idCount];
+        this[kp_listeners].push(event, {id, callback});
         return () => {
             this.off(id);
         }
     }
 
     off(id) {
-        for (let event of [...this.#listeners.keys()]) {
-            let index = this.#listeners.findIndex(event, listener => listener.id === id);
+        for (let event of [...this[kp_listeners].keys()]) {
+            let index = this[kp_listeners].findIndex(event, listener => listener.id === id);
             if (index >= 0) {
-                this.#listeners.pop(event, index);
+                this[kp_listeners].pop(event, index);
             }
         }
     }
 
     hasListener(event) {
-        return this.#listeners.has(event);
+        return this[kp_listeners].has(event);
     }
 
     clear() {
-        this.#listeners = new MapArray();
-        this.#globals = [];
-        this.#idCount = 0;
+        this[kp_listeners] = new MapArray();
+        this[kp_globals] = [];
+        this[kp_idCount] = 0;
     }
 }
 
