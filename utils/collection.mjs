@@ -118,3 +118,27 @@ export function getPage(content, query) {
 
 export const cartesian =
     (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+
+export function generateCombinations(objectWithValues) {
+    let filteredEntries = Object.entries(objectWithValues).filter(([_, arr]) => arr.length > 0);
+
+    if (filteredEntries.length === 0) return []; // Return empty if no valid keys remain
+
+    let keys = filteredEntries.map(([key]) => key);
+    let values = filteredEntries.map(([_, arr]) => arr);
+    let result = [];
+
+    function combine(index, current) {
+        if (index === values.length) {
+            result.push(Object.fromEntries(current));
+            return;
+        }
+        let key = keys[index];
+        for (let value of values[index]) {
+            combine(index + 1, [...current, [key, value]]);
+        }
+    }
+
+    combine(0, []);
+    return result;
+}
