@@ -17,10 +17,6 @@ if (isBrowser && !isJsDom) {
 }
 
 export class LocalStorage {
-    #keyMappings = new Map();
-
-    constructor() {
-    }
 
     getValue(key, defaultValue) {
         let value = storage.getItem(key);
