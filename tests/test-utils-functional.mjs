@@ -1,7 +1,8 @@
 import {
     chain,
     composeRetryUntil,
-    debounce
+    debounce,
+    disableReentrancy
 } from "../utils/functional.mjs";
 
 import {setupTestContext} from "../test/setupTestContext.mjs";
@@ -101,4 +102,46 @@ test.describe('functional', () => {
         });
     });
 
+    test.describe('disableReentrancy', () => {
+        test('should call the callback when not reentrant', () => {
+            let called = false;
+            const fn = disableReentrancy(() => { called = true; });
+            fn();
+            expect(called).to.be.true;
+        });
+
+        test('should prevent reentrant calls', () => {
+            let count = 0;
+            const fn = disableReentrancy(() => {
+                count++;
+                fn(); // recursive call
+            });
+            fn();
+            expect(count).to.equal(1);
+        });
+
+        test('should allow multiple non-reentrant calls', () => {
+            let count = 0;
+            const fn = disableReentrancy(() => { count++; });
+            fn();
+            fn();
+            fn();
+            expect(count).to.equal(3);
+        });
+
+        test('should return the callback’s return value', () => {
+            const fn = disableReentrancy(() => 42);
+            const result = fn();
+            expect(result).to.equal(42);
+        });
+
+        test('should ignore reentrant call and return undefined for it', () => {
+            const fn = disableReentrancy(() => {
+                const innerResult = fn(); // should be undefined
+                return innerResult === undefined ? 'ok' : 'fail';
+            });
+            const result = fn();
+            expect(result).to.equal('ok');
+        });
+    });
 })

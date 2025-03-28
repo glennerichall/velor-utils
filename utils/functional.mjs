@@ -184,3 +184,15 @@ export function toPromise(callback) {
         });
     })
 }
+
+export function disableReentrancy(callback) {
+    let reentrant = false;
+    return (...args) => {
+        if (!reentrant) {
+            reentrant = true;
+            let result = callback(...args);
+            reentrant = false;
+            return result;
+        }
+    }
+}
