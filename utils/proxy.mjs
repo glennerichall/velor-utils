@@ -261,6 +261,35 @@ export function bindOnAfterMethods(target, observer) {
 
     return target;
 }
+// Like bindOnAfterMethods but for async methods.
+export function bindOnAfterAsyncMethods(target, observer) {
+    const meta = Symbol('bindedMethods');
+    for (let key in observer) {
+        let name;
+        if (key.startsWith('on') && typeof observer[key] === 'function') {
+            name = key[2].toLowerCase() + key.substring(3);
+
+            let targetMethod = target[name];
+
+            if (typeof targetMethod === 'function') {
+                targetMethod = targetMethod.bind(target);
+                target[name] = async (...args) => {
+                    let result = await targetMethod(...args);
+                    // fire and forget
+                    observer[key](result, target, ...args);
+                    return result;
+                }
+                target[name][meta] = {
+                    targetMethod
+                };
+            } else {
+                throw new Error(`Execution capture ${key} does not refer to a function in target#${name} (${typeof targetMethod})`);
+            }
+        }
+    }
+
+    return target;
+}
 
 // Replace the method "funName" with function "before"
 // "before" method will be called then original method will be called
