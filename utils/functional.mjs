@@ -185,14 +185,19 @@ export function toPromise(callback) {
     })
 }
 
-export function disableReentrancy(callback) {
-    let reentrant = false;
+export function disableReentrancy(callback, lock = {}) {
+    lock.reentrant = false;
     return (...args) => {
-        if (!reentrant) {
-            reentrant = true;
+        if (!lock.reentrant) {
+            lock.reentrant = true;
             let result = callback(...args);
-            reentrant = false;
+            lock.reentrant = false;
             return result;
         }
     }
+}
+
+export function createReentrancyDisabler() {
+    let lock = {};
+    return callback => disableReentrancy(callback, lock);
 }
