@@ -7,3 +7,5 @@ export function createSymbol(key) {
         return key;
     }
 }
+
+export const sym = createSymbol;
