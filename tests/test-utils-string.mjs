@@ -10,6 +10,13 @@ import {
     unSeparate
 } from "../utils/string.mjs";
 import {Readable} from "stream";
+import {sym} from "../utils/createSymbol.mjs";
+import {Process} from "../utils/proc.mjs";
+import {
+    ENV_DEVELOPMENT,
+    ENV_PRODUCTION,
+    ENV_TEST
+} from "../env.mjs";
 
 const {
     expect,
@@ -209,5 +216,20 @@ test.describe('string utils', () => {
 
     });
 
+    test.describe('create symbol', () => {
+        it('should return name', () => {
+            process.env.NODE_ENV = ENV_DEVELOPMENT;
+            const s = sym`test`;
+            expect(s).to.equal('test');
+        });
+        
+        it('should return value', () => {
+            process.env.NODE_ENV = ENV_PRODUCTION;
+            const s1 = sym`test`;
+            const s2 = sym`test`;
+            expect(s1).to.equal(1);
+            expect(s2).to.equal(2);
+        });
+    })
 })
 

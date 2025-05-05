@@ -8,4 +8,6 @@ export function createSymbol(key) {
     }
 }
 
-export const sym = createSymbol;
+export const sym = (def) => {
+    return createSymbol(def[0]);
+}
