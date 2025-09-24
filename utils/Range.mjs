@@ -112,10 +112,6 @@ export class Range {
         return this;
     }
 
-    done() {
-        return this._range;
-    }
-
     toArray() {
         return [
             this.first,
