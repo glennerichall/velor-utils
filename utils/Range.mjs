@@ -8,8 +8,16 @@ export class Range {
         return this._range.first;
     }
 
+    set first(value) {
+        this.setValue({first: value});
+    }
+
     get last() {
         return this._range.last;
+    }
+
+    set last(value) {
+        this.setValue({last: value});
     }
 
     get count() {
@@ -18,6 +26,23 @@ export class Range {
 
     get max() {
         return this._range.max;
+    }
+
+    set range(array) {
+        let range = {};
+        if (array.length >= 1) {
+            range.first = array[0];
+        }
+
+        if (array.length >= 2) {
+            range.last = array[1];
+        }
+
+        if (array.length >= 3) {
+            range.max = array[2];
+        }
+
+        this.setValue(range);
     }
 
     static fromArray(arr) {

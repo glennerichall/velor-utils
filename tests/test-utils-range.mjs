@@ -311,25 +311,6 @@ test.describe('Range', () => {
         expect(r.count).to.eq(91);
     })
 
-    test('#done', () => {
-        const range = {
-            first: 10,  // inclusive
-            last: 100,  // inclusive
-            max: 1000   // inclusive
-        };
-
-        const r = new Range(range)
-            .moveDown(10)
-            .pageDown()
-            .pageDown()
-            .pageDown()
-            .pageUp()
-            .pageUp();
-        expect(r.first).to.eq(111);
-        expect(r.last).to.eq(201);
-        expect(r.max).to.eq(1000);
-        expect(r.count).to.eq(91);
-    })
 
     test("#expand", () => {
         const r = new Range({first: 10, last: 99, max: 1000})
@@ -357,5 +338,27 @@ test.describe('Range', () => {
         for (let val of new Range({first: 10, last: 99, max: 1000})) {
             expect(val).to.eq(i++);
         }
+    })
+
+    test("#range", ()=> {
+        const r = new Range({first: 10, last: 99, max: 1000})
+
+        r.range = [11];
+
+        expect(r.first).to.eq(11);
+        expect(r.last).to.eq(99);
+        expect(r.max).to.eq(1000);
+
+        r.range = [12, 15];
+
+        expect(r.first).to.eq(12);
+        expect(r.last).to.eq(15);
+        expect(r.max).to.eq(1000);
+
+        r.range = [13, 66, 67];
+
+        expect(r.first).to.eq(13);
+        expect(r.last).to.eq(66);
+        expect(r.max).to.eq(67);
     })
 })
