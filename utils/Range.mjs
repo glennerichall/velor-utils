@@ -1,31 +1,55 @@
 export class Range {
 
+    #first;
+    #last;
+    #max;
+
     constructor(range) {
-        this._range = range;
+        this.#first = range.first;
+        this.#last = range.last;
+        this.#max = range.max;
     }
 
     get first() {
-        return this._range.first;
+        return this.#first;
     }
 
     set first(value) {
-        this.setValue({first: value});
+        this.#first = value;
+        if (this.#last < this.#first) {
+            this.#last = this.#first;
+        }
+        this.#clamp();
     }
 
     get last() {
-        return this._range.last;
+        return this.#last;
     }
 
     set last(value) {
-        this.setValue({last: value});
+        this.#last = value;
+        if (this.#last < this.#first) {
+            this.#first = this.#last;
+        }
+        this.#clamp();
     }
 
     get count() {
         return this.last - this.first + 1;
     }
 
+    set count(value) {
+        this.#last = this.#first + value - 1;
+        this.#clamp();
+    }
+
     get max() {
-        return this._range.max;
+        return this.#max;
+    }
+
+    set max(value) {
+        this.#max = value;
+        this.#clamp();
     }
 
     set range(array) {
@@ -53,54 +77,36 @@ export class Range {
         });
     }
 
+    #clamp() {
+        let count = this.count;
+        if (this.#first < 0) {
+            this.#first = 0;
+            this.#last = this.#first + Math.min(count, this.#max) - 1;
+        } else if (this.#last > this.#max) {
+            this.#last = this.#max;
+            this.#first = this.#last - Math.min(count, this.#max) + 1;
+        }
+    }
+
     setValue(value) {
-        const current = this._range;
         const range = {
-            ...current,
+            first: this.#first,
+            last: this.#last,
+            max: this.#max,
             ...value,
         };
-
-        if (range.last >= range.max) {
-            const dist = range.last - range.first;
-            range.last = range.max;
-            range.first = range.max - dist;
-        }
-
-        if (current.max !== range.max &&
-            range.first < 0) {
-            const d = -range.first;
-            range.first = 0;
-            range.last += d;
-        }
-
-        if (current.first !== range.first ||
-            current.last !== range.last ||
-            current.max !== range.max) {
-            this._range = {...range};
-        }
+        this.#first = range.first;
+        this.#last = range.last;
+        this.#max = range.max;
+        this.#clamp();
         return this;
     }
 
     moveDown(d = 1) {
-        const range = this._range;
-        let dist = range.last - range.first;
-        let first = range.first + d;
-        let last = range.last + d;
-        let max = range.max;
+        this.#first += d;
+        this.#last += d;
 
-        if (first < 0) {
-            first = 0;
-            last = dist;
-        } else if (last > max) {
-            last = max;
-            first = last - dist;
-        }
-
-        this._range = {
-            first,
-            last,
-            max
-        };
+        this.#clamp();
 
         return this;
     }
@@ -145,17 +151,36 @@ export class Range {
         ];
     }
 
+    growUp(n = 1) {
+        this.#first -= n;
+        this.#clamp();
+        return this;
+    }
+
+    growDown(n = 1) {
+        this.#last += n;
+        this.#clamp();
+        return this;
+    }
+
+    shrinkDown(n = 1) {
+        return this.growUp(-n);
+    }
+
+    shrinkUp(n = 1) {
+        return this.growDown(-n);
+    }
+
     expand() {
-        const range = this._range;
         const res = [];
-        for (let i = range.first; i <= range.last; i++) {
+        for (let i = this.#first; i <= this.#last; i++) {
             res.push(i);
         }
         return res;
     }
 
     * [Symbol.iterator]() {
-        for (let i = this.first; i <= this.last; i++) {
+        for (let i = this.#first; i <= this.#last; i++) {
             yield i;
         }
     }

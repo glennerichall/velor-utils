@@ -361,4 +361,41 @@ test.describe('Range', () => {
         expect(r.last).to.eq(66);
         expect(r.max).to.eq(67);
     })
+
+    test("set first overflow", ()=> {
+        const r = new Range({first: 10, last: 12, max: 1000});
+        r.first = 1000;
+        expect(r.first).to.eq(1000);
+        expect(r.last).to.eq(1000);
+        expect(r.count).to.eq(1);
+    })
+
+    test("set count", ()=> {
+        const r = new Range({first: 10, last: 99, max: 1000})
+        r.count = 2;
+
+        expect(r.first).to.eq(10);
+        expect(r.last).to.eq(11);
+        expect(r.count).to.eq(2);
+
+        r.first = 1000;
+        expect(r.first).to.eq(1000);
+        expect(r.last).to.eq(1000);
+        expect(r.count).to.eq(1);
+    })
+
+    test("#growUp", ()=> {
+        const r = new Range({first: 10, last: 99, max: 1000})
+        r.growUp(2);
+
+        expect(r.first).to.eq(8);
+        expect(r.last).to.eq(99);
+    })
+    test("#shrinkUp", ()=> {
+        const r = new Range({first: 10, last: 99, max: 1000})
+        r.shrinkUp(2);
+
+        expect(r.first).to.eq(10);
+        expect(r.last).to.eq(97);
+    })
 })
