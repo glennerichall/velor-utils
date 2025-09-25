@@ -19,12 +19,14 @@ export class Range {
     }
 
     set first(value) {
-        this.#first = value;
-        if (this.#last < this.#first) {
-            this.#last = this.#first;
+        if (value !== this.#first) {
+            this.#first = value;
+            if (this.#last < this.#first) {
+                this.#last = this.#first;
+            }
+            this.#clamp();
+            this.valueChanged();
         }
-        this.#clamp();
-        this.valueChanged();
     }
 
     get last() {
@@ -32,12 +34,14 @@ export class Range {
     }
 
     set last(value) {
-        this.#last = value;
-        if (this.#last < this.#first) {
-            this.#first = this.#last;
+        if (value !== this.#last) {
+            this.#last = value;
+            if (this.#last < this.#first) {
+                this.#first = this.#last;
+            }
+            this.#clamp();
+            this.valueChanged();
         }
-        this.#clamp();
-        this.valueChanged();
     }
 
     get count() {
@@ -45,9 +49,11 @@ export class Range {
     }
 
     set count(value) {
-        this.#last = this.#first + value - 1;
-        this.#clamp();
-        this.valueChanged();
+        if (this.count !== value) {
+            this.#last = this.#first + value - 1;
+            this.#clamp();
+            this.valueChanged();
+        }
     }
 
     get max() {
@@ -55,9 +61,11 @@ export class Range {
     }
 
     set max(value) {
-        this.#max = value;
-        this.#clamp();
-        this.valueChanged();
+        if (this.#max !== value) {
+            this.#max = value;
+            this.#clamp();
+            this.valueChanged();
+        }
     }
 
     set range(array) {
@@ -107,20 +115,36 @@ export class Range {
             max: this.#max,
             ...value,
         };
-        this.#first = range.first;
-        this.#last = range.last;
-        this.#max = range.max;
-        this.#clamp();
-        this.valueChanged();
+
+        if (range.first !== this.#first ||
+            range.last !== this.#last ||
+            range.max !== this.#max) {
+
+            this.#first = range.first;
+            this.#last = range.last;
+            this.#max = range.max;
+            this.#clamp();
+            this.valueChanged();
+        }
         return this;
     }
 
     moveDown(d = 1) {
+        let {
+            first,
+            last,
+        } = this
+
         this.#first += d;
         this.#last += d;
 
         this.#clamp();
-        this.valueChanged();
+
+        if (first !== this.#first ||
+            last !== this.#last) {
+            this.valueChanged();
+        }
+
         return this;
     }
 
@@ -165,16 +189,32 @@ export class Range {
     }
 
     growUp(n = 1) {
+        let {
+            first,
+            last,
+        } = this
+
         this.#first -= n;
         this.#clamp();
-        this.valueChanged();
+        if (first !== this.#first ||
+            last !== this.#last) {
+            this.valueChanged();
+        }
         return this;
     }
 
     growDown(n = 1) {
+        let {
+            first,
+            last,
+        } = this
         this.#last += n;
         this.#clamp();
         this.valueChanged();
+        if (first !== this.#first ||
+            last !== this.#last) {
+            this.valueChanged();
+        }
         return this;
     }
 
@@ -187,17 +227,39 @@ export class Range {
     }
 
     clear() {
+        let {
+            first,
+            last,
+            max
+        } = this
         this.#first = 0;
         this.#last = 0;
         this.#max = 0;
-        this.valueChanged();
+
+        if (first !== this.#first ||
+            last !== this.#last ||
+            max !== this.#max) {
+            this.valueChanged();
+        }
+
         return this;
     }
 
     invalidate() {
+        let {
+            first,
+            last,
+            max
+        } = this
         this.#first = null;
         this.#last = null;
-        this.valueChanged();
+
+        if (first !== this.#first ||
+            last !== this.#last ||
+            max !== this.#max) {
+            this.valueChanged();
+        }
+
         return this;
     }
 
