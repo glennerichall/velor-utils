@@ -279,6 +279,10 @@ export class Range {
         // stub
     }
 
+    inRange(value) {
+        return value >= this.first && value <= this.last;
+    }
+
     expand() {
         const res = [];
         for (let i = this.#first; i <= this.#last; i++) {
