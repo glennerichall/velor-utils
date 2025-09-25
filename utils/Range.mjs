@@ -69,6 +69,10 @@ export class Range {
         this.setValue(range);
     }
 
+    get valid() {
+        return this.#first !== null && this.#last !== null;
+    }
+
     static fromArray(arr) {
         return new Range({
             first: arr[0],
@@ -169,6 +173,19 @@ export class Range {
 
     shrinkUp(n = 1) {
         return this.growDown(-n);
+    }
+
+    clear() {
+        this.#first = 0;
+        this.#last = 0;
+        this.#max = 0;
+        return this;
+    }
+
+    invalidate() {
+        this.#first = null;
+        this.#last = null;
+        return this;
     }
 
     expand() {
