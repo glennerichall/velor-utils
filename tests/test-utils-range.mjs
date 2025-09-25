@@ -417,4 +417,22 @@ test.describe('Range', () => {
         expect(r.first).to.eq(2);
         expect(r.last).to.eq(101);
     })
+
+    test("#shrinkTo", ()=> {
+        const r = new Range({first: 10, last: 99, max: 1000});
+        r.shrinkTo(15);
+        expect(r.first).to.eq(15);
+        expect(r.last).to.eq(99);
+
+        r.shrinkTo(94);
+        expect(r.first).to.eq(15);
+        expect(r.last).to.eq(94);
+    })
+
+    test("#shrinkTo limit case", ()=> {
+        const r = new Range({first: 2, last: 3, max: 1000});
+        r.shrinkTo(2);
+        expect(r.first).to.eq(2);
+        expect(r.last).to.eq(3);
+    })
 })

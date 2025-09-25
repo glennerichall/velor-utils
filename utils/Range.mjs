@@ -116,6 +116,12 @@ export class Range {
             ...value,
         };
 
+        if (range.first > range.last) {
+            let tmp = range.first;
+            range.first = range.last;
+            range.last = tmp;
+        }
+
         if (range.first !== this.#first ||
             range.last !== this.#last ||
             range.max !== this.#max) {
@@ -236,6 +242,40 @@ export class Range {
 
     shrinkUp(n = 1) {
         return this.growDown(-n);
+    }
+
+    shrinkTo(index) {
+        let d0 = index - this.first;
+        let d1 = this.last - index;
+
+        if (d0 < d1) {
+            this.shrinkDown(d0);
+        } else if (d1 > 0) {
+            this.shrinkUp(d1);
+        }
+        return this;
+    }
+
+    adjustTo(index, pivot) {
+        let {
+            first,
+            last,
+        } = this
+
+        if (index < pivot) {
+            this.#first = index;
+        } else if (index > pivot) {
+            this.#last = index;
+        } else {
+            this.last =
+                this.first = index;
+        }
+
+        if (first !== this.#first ||
+            last !== this.#last) {
+            this.valueChanged();
+        }
+        return this;
     }
 
     clear() {
