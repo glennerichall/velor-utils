@@ -24,6 +24,7 @@ export class Range {
             this.#last = this.#first;
         }
         this.#clamp();
+        this.valueChanged();
     }
 
     get last() {
@@ -36,6 +37,7 @@ export class Range {
             this.#first = this.#last;
         }
         this.#clamp();
+        this.valueChanged();
     }
 
     get count() {
@@ -45,6 +47,7 @@ export class Range {
     set count(value) {
         this.#last = this.#first + value - 1;
         this.#clamp();
+        this.valueChanged();
     }
 
     get max() {
@@ -54,6 +57,7 @@ export class Range {
     set max(value) {
         this.#max = value;
         this.#clamp();
+        this.valueChanged();
     }
 
     set range(array) {
@@ -107,6 +111,7 @@ export class Range {
         this.#last = range.last;
         this.#max = range.max;
         this.#clamp();
+        this.valueChanged();
         return this;
     }
 
@@ -115,7 +120,7 @@ export class Range {
         this.#last += d;
 
         this.#clamp();
-
+        this.valueChanged();
         return this;
     }
 
@@ -162,12 +167,14 @@ export class Range {
     growUp(n = 1) {
         this.#first -= n;
         this.#clamp();
+        this.valueChanged();
         return this;
     }
 
     growDown(n = 1) {
         this.#last += n;
         this.#clamp();
+        this.valueChanged();
         return this;
     }
 
@@ -183,13 +190,19 @@ export class Range {
         this.#first = 0;
         this.#last = 0;
         this.#max = 0;
+        this.valueChanged();
         return this;
     }
 
     invalidate() {
         this.#first = null;
         this.#last = null;
+        this.valueChanged();
         return this;
+    }
+
+    valueChanged() {
+        // stub
     }
 
     expand() {
