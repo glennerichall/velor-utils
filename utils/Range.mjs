@@ -188,6 +188,18 @@ export class Range {
         ];
     }
 
+    growTo(index) {
+        let d0 = this.first - index;
+        let d1 = index - this.last;
+
+        if (d0 > 0) {
+            this.growUp(d0);
+        } else if (d1 > 0) {
+            this.growDown(d1);
+        }
+        return this;
+    }
+
     growUp(n = 1) {
         let {
             first,

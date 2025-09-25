@@ -391,11 +391,30 @@ test.describe('Range', () => {
         expect(r.first).to.eq(8);
         expect(r.last).to.eq(99);
     })
+
     test("#shrinkUp", ()=> {
         const r = new Range({first: 10, last: 99, max: 1000})
         r.shrinkUp(2);
 
         expect(r.first).to.eq(10);
         expect(r.last).to.eq(97);
+    })
+
+    test("#grow", ()=> {
+        const r = new Range({first: 10, last: 99, max: 1000});
+        r.growTo(2);
+
+        expect(r.first).to.eq(2);
+        expect(r.last).to.eq(99);
+
+        r.growTo(101);
+
+        expect(r.first).to.eq(2);
+        expect(r.last).to.eq(101);
+
+        r.growTo(99);
+
+        expect(r.first).to.eq(2);
+        expect(r.last).to.eq(101);
     })
 })
