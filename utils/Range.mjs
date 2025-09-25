@@ -4,10 +4,14 @@ export class Range {
     #last;
     #max;
 
-    constructor(range) {
-        this.#first = range.first;
-        this.#last = range.last;
-        this.#max = range.max;
+    constructor({
+                    first = null,
+                    last = null,
+                    max = null,
+                } = {}) {
+        this.#first = first;
+        this.#last = last;
+        this.#max = max;
     }
 
     get first() {
