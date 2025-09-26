@@ -3,15 +3,42 @@ export class Range {
     #first;
     #last;
     #max;
+    #min;
 
     constructor({
                     first = null,
                     last = null,
                     max = null,
+                    min = 0,
+                    count = null
                 } = {}) {
+
+        const provided = [first !== null, last !== null, count !== null].filter(Boolean).length;
+        if (provided < 2) {
+            throw new Error("At least two of 'first', 'last' or 'count' must be provided.");
+        }
+
+        // Déductions en mode last exclusif
+        if (count === null && first !== null && last !== null) {
+            count = last - first;
+        } else if (last === null && first !== null && count !== null) {
+            last = first + count;
+        } else if (first === null && last !== null && count !== null) {
+            first = last - count;
+        }
+
+        if (first > last) {
+            let tmp = first;
+            first = last;
+            last = tmp;
+        }
+
         this.#first = first;
         this.#last = last;
         this.#max = max;
+        this.#min = min;
+
+        this.#clamp();
     }
 
     get first() {
@@ -22,7 +49,7 @@ export class Range {
         if (value !== this.#first) {
             this.#first = value;
             if (this.#last < this.#first) {
-                this.#last = this.#first;
+                this.#last = this.#first;        // autorise plage vide
             }
             this.#clamp();
             this.valueChanged();
@@ -37,7 +64,7 @@ export class Range {
         if (value !== this.#last) {
             this.#last = value;
             if (this.#last < this.#first) {
-                this.#first = this.#last;
+                this.#first = this.#last;        // autorise plage vide
             }
             this.#clamp();
             this.valueChanged();
@@ -45,12 +72,13 @@ export class Range {
     }
 
     get count() {
-        return this.last - this.first + 1;
+        return Math.max(0, this.last - this.first);
     }
 
     set count(value) {
+        value = Math.max(0, value);
         if (this.count !== value) {
-            this.#last = this.#first + value - 1;
+            this.#last = this.#first + value;
             this.#clamp();
             this.valueChanged();
         }
@@ -63,6 +91,18 @@ export class Range {
     set max(value) {
         if (this.#max !== value) {
             this.#max = value;
+            this.#clamp();
+            this.valueChanged();
+        }
+    }
+
+    get min() {
+        return this.#min;
+    }
+
+    set min(value) {
+        if (value !== this.#min) {
+            this.#min = value;
             this.#clamp();
             this.valueChanged();
         }
@@ -98,13 +138,16 @@ export class Range {
     }
 
     #clamp() {
-        let count = this.count;
-        if (this.#first < 0) {
-            this.#first = 0;
-            this.#last = this.#first + Math.min(count, this.#max) - 1;
-        } else if (this.#last > this.#max) {
-            this.#last = this.#max;
-            this.#first = this.#last - Math.min(count, this.#max) + 1;
+        const count = this.count;
+        const cap = (this.#max == null ? null : this.#max); // borne exclusive dérivée
+
+        if (this.#first < this.#min) {
+            this.#first = this.#min;
+            if (cap !== null) this.#last = Math.min(this.#first + count, cap);
+            else this.#last = this.#first + count;
+        } else if (cap !== null && this.#last > cap) {
+            this.#last = cap;
+            this.#first = Math.max(this.#min, this.#last - count);
         }
     }
 
@@ -113,22 +156,25 @@ export class Range {
             first: this.#first,
             last: this.#last,
             max: this.#max,
+            min: this.#min,
             ...value,
         };
 
         if (range.first > range.last) {
-            let tmp = range.first;
+            const tmp = range.first;
             range.first = range.last;
             range.last = tmp;
         }
 
         if (range.first !== this.#first ||
             range.last !== this.#last ||
-            range.max !== this.#max) {
+            range.max !== this.#max ||
+            range.min !== this.#min) {
 
             this.#first = range.first;
-            this.#last = range.last;
+            this.#last = range.last;   // exclusif
             this.#max = range.max;
+            this.#min = range.min;
             this.#clamp();
             this.valueChanged();
         }
@@ -167,7 +213,7 @@ export class Range {
 
     jumpToLast(index) {
         if (index === undefined) {
-            index = this.max;
+            index = (this.max == null ? this.last : this.max);
         }
         const d = index - this.last;
         this.moveDown(d);
@@ -190,13 +236,14 @@ export class Range {
         return [
             this.first,
             this.last,
+            this.min,
             this.max
         ];
     }
 
     growTo(index) {
-        let d0 = this.first - index;
-        let d1 = index - this.last;
+        const d0 = this.first - index;
+        const d1 = index - this.last;  // last exclusif
 
         if (d0 > 0) {
             this.growUp(d0);
@@ -245,8 +292,8 @@ export class Range {
     }
 
     shrinkTo(index) {
-        let d0 = index - this.first;
-        let d1 = this.last - index;
+        const d0 = index - this.first;
+        const d1 = this.last - index;
 
         if (d0 < d1) {
             this.shrinkDown(d0);
@@ -282,11 +329,13 @@ export class Range {
         let {
             first,
             last,
-            max
+            max,
+            min
         } = this
         this.#first = 0;
         this.#last = 0;
         this.#max = 0;
+        this.#min = 0;
 
         if (first !== this.#first ||
             last !== this.#last ||
@@ -301,14 +350,16 @@ export class Range {
         let {
             first,
             last,
-            max
+            max,
+            min
         } = this
         this.#first = null;
         this.#last = null;
 
         if (first !== this.#first ||
             last !== this.#last ||
-            max !== this.#max) {
+            max !== this.#max ||
+            min !== this.#min) {
             this.valueChanged();
         }
 
@@ -320,19 +371,19 @@ export class Range {
     }
 
     inRange(value) {
-        return value >= this.first && value <= this.last;
+        return value >= this.first && value < this.last;
     }
 
     expand() {
         const res = [];
-        for (let i = this.#first; i <= this.#last; i++) {
+        for (let i = this.#first; i < this.#last; i++) {
             res.push(i);
         }
         return res;
     }
 
     * [Symbol.iterator]() {
-        for (let i = this.#first; i <= this.#last; i++) {
+        for (let i = this.#first; i < this.#last; i++) {
             yield i;
         }
     }

@@ -1,11 +1,17 @@
 {
   "name": "velor-utils",
-  "version": "1.1.52",
+  "version": "1.1.53",
   "description": "",
   "scripts": {
     "test": "npx playwright test"
   },
-  "private": true,
+  "files": [
+    "utils/",
+    "test/",
+    "env.mjs",
+    "package.json"
+  ],
+  "private": false,
   "devDependencies": {
     "@playwright/test": "^1.48.1",
     "chai": "^5.1.2",
