@@ -139,3 +139,6 @@ cmake-build-*/
 
 test-results/
 playwright-report/
+
+yalc.lock
+.yalc/
