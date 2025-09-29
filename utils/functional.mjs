@@ -201,3 +201,11 @@ export function createReentrancyDisabler() {
     let lock = {};
     return callback => disableReentrancy(callback, lock);
 }
+
+export function afterCall(fun, callback) {
+    return (...args) => {
+        const result = fun(...args);
+        callback(...args, result);
+        return result;
+    }
+}
