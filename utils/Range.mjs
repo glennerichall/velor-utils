@@ -6,22 +6,22 @@ export class Range {
     #min;
 
     constructor({
-                    first,
-                    last,
+                    first = null,
+                    last = null,
                     max,
                     min = 0,
                     count = null
                 } = {}) {
 
-        const provided = [first !== undefined, last !== undefined, count !== undefined].filter(Boolean).length;
+        const provided = [
+            first !== null,
+            last !== null,
+            count !== null
+        ].filter(Boolean).length;
         if (provided > 2) {
             throw new Error("At most two of 'first', 'last' or 'count' must be provided.");
         } else if (provided === 1) {
             throw new Error("At least two of 'first', 'last' or 'count' must be provided.");
-        } else {
-            first = null;
-            last = null;
-            count = null;
         }
 
         // Déductions en mode last exclusif
