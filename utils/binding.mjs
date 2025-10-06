@@ -76,16 +76,17 @@ export function bindReplaceResult(target, funName, modifier, async = false) {
 
 // Replace all the methods in "observer" beginning with "on" that
 // exists in "target" without "on". Ex. target.run() and observer.onRun().
-export function bindOnAfterMethods(target, observer) {
-    return __bindOnAfter(target, observer);
+export function bindOnAfterMethods(target, observer, async) {
+    return __bindOnAfter(target, observer, async);
 }
 
 function __bindOnMethods({
-                          target,
-                          observer,
-                          prefix = 'on',
-                          binding
-                      }) {
+                             target,
+                             observer,
+                             prefix = 'on',
+                             binding,
+                             async = false
+                         }) {
     const prefixLen = prefix.length;
     for (let key in observer) {
         let name;
@@ -93,7 +94,7 @@ function __bindOnMethods({
             name = key[prefixLen].toLowerCase() + key.substring(prefixLen + 1);
             let targetMethod = target[name];
             if (typeof targetMethod === 'function') {
-                binding(target, name, (...args) => observer[key](...args))
+                binding(target, name, (...args) => observer[key](...args), async)
             } else {
                 throw new Error(`Execution capture ${key} does not refer to a function in target#${name} (${typeof targetMethod})`);
             }
@@ -102,32 +103,34 @@ function __bindOnMethods({
     return target;
 }
 
-function __bindOnAfter(target, observer, prefix) {
+function __bindOnAfter(target, observer, prefix, async) {
     return __bindOnMethods({
         target,
         observer,
         prefix,
-        binding: bindAfterMethod
+        binding: bindAfterMethod,
+        async
     });
 }
 
-function __bindOnBefore(target, observer, prefix) {
+function __bindOnBefore(target, observer, prefix, async) {
     return __bindOnMethods({
         target,
         observer,
         prefix,
-        binding: bindBeforeMethod
+        binding: bindBeforeMethod,
+        async
     });
 }
 
-export function bindAroundMethods(obj, observer) {
+export function bindAroundMethods(obj, observer, async) {
     return __bindOnBefore(
-        __bindOnAfter(obj, observer, 'onAfter'),
-        observer, 'onBefore');
+        __bindOnAfter(obj, observer, 'onAfter', async),
+        observer, 'onBefore', async);
 }
 
 // Same as bindBeforeMethod combined with bindAfterMethod
-export function bindAroundMethod(target, funName, before, after, async = false) {
+export function bindAroundMethod(target, funName, before, after, async) {
     return bindAfterMethod(
         bindBeforeMethod(target, funName, before),
         funName, after, async);
