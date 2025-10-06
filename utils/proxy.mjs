@@ -69,7 +69,6 @@ export function createProxyReplaceMethods(target, proxy) {
     });
 }
 
-
 export function createProxyObserveMethods(target, observer) {
     return new Proxy(target, {
 
@@ -190,7 +189,6 @@ export function createPatchedClassObserveMethods(Class, observer) {
     };
 }
 
-
 export const createProxyPropToMethodCall = provider =>
     new Proxy(provider, {
         get(target, prop, receiver) {
@@ -218,170 +216,6 @@ export function createProxyAroundAnyAsyncMethod(obj, onBefore, onAfter) {
     });
 }
 
-
-// Replace the method "funName" with function "modifier"
-// Calls the original method and sends the result to "modifier"
-// returns "modifier" result to caller.
-export function bindReplaceResult(obj, funName, modifier) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = (...args) => {
-        let res = target(...args);
-        return modifier(res, ...args);
-    }
-    return obj;
-}
-
-// Replace all the methods in "observer" beginning with "on" that
-// exists in "target" without "on". Ex. target.run() and observer.onRun().
-export function bindOnAfterMethods(target, observer) {
-    const meta = Symbol('bindedMethods');
-    for (let key in observer) {
-        let name;
-        if (key.startsWith('on') && typeof observer[key] === 'function') {
-            name = key[2].toLowerCase() + key.substring(3);
-
-            let targetMethod = target[name];
-
-            if (typeof targetMethod === 'function') {
-                targetMethod = targetMethod.bind(target);
-                target[name] = (...args) => {
-                    let result = targetMethod(...args);
-                    // fire and forget
-                    observer[key](result, target, ...args);
-                    return result;
-                }
-                target[name][meta] = {
-                    targetMethod
-                };
-            } else {
-                throw new Error(`Execution capture ${key} does not refer to a function in target#${name} (${typeof targetMethod})`);
-            }
-        }
-    }
-
-    return target;
-}
-// Like bindOnAfterMethods but for async methods.
-export function bindOnAfterAsyncMethods(target, observer) {
-    const meta = Symbol('bindedMethods');
-    for (let key in observer) {
-        let name;
-        if (key.startsWith('on') && typeof observer[key] === 'function') {
-            name = key[2].toLowerCase() + key.substring(3);
-
-            let targetMethod = target[name];
-
-            if (typeof targetMethod === 'function') {
-                targetMethod = targetMethod.bind(target);
-                target[name] = async (...args) => {
-                    let result = await targetMethod(...args);
-                    // fire and forget
-                    observer[key](result, target, ...args);
-                    return result;
-                }
-                target[name][meta] = {
-                    targetMethod
-                };
-            } else {
-                throw new Error(`Execution capture ${key} does not refer to a function in target#${name} (${typeof targetMethod})`);
-            }
-        }
-    }
-
-    return target;
-}
-
-// Replace the method "funName" with function "before"
-// "before" method will be called then original method will be called
-export function bindBeforeMethod(obj, funName, before) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = (...args) => {
-        let aborted = false;
-        let abort = () => aborted = true
-        before({args, target: obj, abort});
-        if (!aborted) {
-            return target(...args);
-        }
-    }
-    return obj;
-}
-
-// Replace the method "funName" with function "after"
-// original method will be called "after" method will be called then
-export function bindAfterMethod(obj, funName, after) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = (...args) => {
-        let res = target(...args);
-        after({args, res, target: obj});
-        return res;
-    }
-    return obj;
-}
-
-export function bindOnThrow(obj, funName, onError, rethrow = true) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = (...args) => {
-        try {
-            return target(...args);
-        } catch (error) {
-            onError({error, args, res, target: obj});
-            if (rethrow) {
-                throw e;
-            }
-        }
-    }
-    return obj;
-}
-
-export function bindAsyncOnThrow(obj, funName, onError, rethrow = true) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = async (...args) => {
-        try {
-            return await target(...args);
-        } catch (error) {
-            await onError({error, args, target: obj});
-            if (rethrow) {
-                throw error;
-            }
-        }
-    }
-    return obj;
-}
-
-// Same as bindBeforeMethod combined with bindAfterMethod
-export function bindAroundMethod(obj, funName, before, after) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = (...args) => {
-        before({args, target: obj});
-        let res = target(...args);
-        after({args, res, target: obj});
-        return res;
-    }
-    return obj;
-}
-
-// Same as bindBeforeMethod combined with bindAfterMethod
-export function bindAroundAsyncMethod(obj, funName, before, after, onError) {
-    let target = obj[funName].bind(obj);
-    obj[funName] = async (...args) => {
-        let aborted = false;
-        await before({args, target: obj, abort: () => aborted = true});
-        try {
-            if (!aborted) {
-                let res = await target(...args);
-                after({args, res, target: obj});
-                return res;
-            }
-        } catch (error) {
-            if (onError) {
-                onError({args, error, target: obj});
-            }
-            throw error;
-        }
-    }
-    return obj;
-}
-
 export function createProxyInjectArgBefore(getArg, manager) {
     return createProxyReplaceArguments(manager, (prop, args) => {
         const user = getArg();
@@ -406,7 +240,6 @@ export function forwardMethods(target, source) {
 
     return target
 }
-
 
 function makeAsyncProxy(instance) {
     return new Proxy(instance, {

@@ -5,11 +5,12 @@ import {
     forwardMethods,
     getAllMethods
 } from "../utils/proxy.mjs";
+import {test} from "playwright/test";
 
 
 const {
     expect,
-    test,
+    // test,
     it
 } = setupTestContext();
 
