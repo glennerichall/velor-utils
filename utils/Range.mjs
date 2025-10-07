@@ -386,6 +386,19 @@ export class Range {
         return res;
     }
 
+    all() {
+        const {
+            first,
+            last
+        } = this;
+
+        this.#first = this.#min;
+        this.#last = this.#max;
+        if (first !== this.#first || last !== this.#last) {
+            this.valueChanged();
+        }
+    }
+
     * [Symbol.iterator]() {
         for (let i = this.#first; i < this.#last; i++) {
             yield i;
